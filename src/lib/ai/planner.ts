@@ -1,11 +1,5 @@
-export type DialogueMove =
-  | "ANSWER"
-  | "CLARIFY"
-  | "DEFINE"
-  | "SHOW_EVIDENCE"
-  | "EXPLAIN_DISAGREEMENT"
-  | "REFER";
+import type { DialoguePlan } from "@/lib/schemas/planner";
 
-export async function planNextMove(): Promise<DialogueMove> {
+export async function planNextMove(): Promise<DialoguePlan> {
   throw new Error("planNextMove is not implemented yet.");
 }
