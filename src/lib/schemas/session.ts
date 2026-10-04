@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { idSchema, isoDateTimeSchema } from "./common";
 import { userProfileSchema } from "./userProfile";
 
 export const sessionSchema = z.object({
-  id: z.string(),
+  id: idSchema,
   userProfile: userProfileSchema,
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: isoDateTimeSchema,
+  updatedAt: isoDateTimeSchema,
 });
 
 export type Session = z.infer<typeof sessionSchema>;
