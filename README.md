@@ -1,42 +1,74 @@
-# Deploy Next.js to Render
+# راشد | RASHID
 
-This is a Next.js template which can be deployed to [Render](https://render.com).
+RASHID is an Arabic-first, evidence-based Islamic dialogue platform for guided learning, structured discussion, source inspection, scholarly disagreement handling, and safe referral.
 
-## Deploying to Render
+## Current status
 
-This template can be used to deploy your Next.js application as a Node.js server.
+This repository contains the project scaffold agreed for the hackathon MVP. The religious knowledge corpus and production AI behavior are intentionally added in later modules and must follow the approved challenge sources.
 
-### Deploy in one click
+## Stack
 
-1. Fork this repo.
-1. In your new repo, click the button below.
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS
+- Zod
+- Render
+- GitHub
 
-<a href="https://render.com/deploy" referrerpolicy="no-referrer-when-downgrade" rel="nofollow">
-  <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" />
-</a>
+## Local setup
 
-Note: The button uses the `render.yaml` file in this repo to deploy your app. For more information about `render.yaml`, see [Render's guide](https://docs.render.com/infrastructure-as-code).
+```bash
+npm install
+npm run dev
+```
 
-### Deploy manually
+Open `http://localhost:3000`.
 
-1. Fork this repo.
-1. Create a new Web Service on Render.
-1. Give Render permission to access your new repo.
-1. Use the following values during Web Service creation.
+Copy `.env.example` to `.env.local` and add real values locally only.
 
-- Runtime: Node
-- Build Command: `pnpm install; pnpm build`
-- Start Command: `pnpm start`
+## Main project structure
 
-## Learn More
-To learn more about deploying Next.js, take a look at the following resources:
+```text
+src/
+  app/
+  components/
+  lib/
+    ai/
+    rag/
+    graphs/
+    schemas/
+  prompts/
+  types/
+data/
+  raw/
+  normalized/
+  processed/
+  embeddings/
+  mock/
+  tests/
+scripts/
+docs/
+public/
+  brand/
+```
 
-- [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying#self-hosting)
-- [Deploying Next.js on Render](https://docs.render.com/deploy-nextjs-app)
+## Safety rule
 
-To learn more about Next.js, take a look at the following resources:
+Religious claims in the final product must be grounded only in the approved challenge corpus. RASHID is not a fatwa engine and must support abstention/referral for personal rulings or insufficient evidence.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Preferred hackathon flow: connect this repository to Render as a **Web Service**. Do not rely on a Blueprint unless its configuration has been reviewed.
+
+Build command:
+
+```bash
+npm install && npm run build
+```
+
+Start command:
+
+```bash
+npm start
+```
