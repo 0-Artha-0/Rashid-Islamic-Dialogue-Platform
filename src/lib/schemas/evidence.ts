@@ -1,21 +1,33 @@
 import { z } from "zod";
+import { idSchema } from "./common";
+import { sourceTypeSchema } from "./corpus";
+
+export const evidenceRelationSchema = z.enum([
+  "SUPPORTS",
+  "QUALIFIES",
+  "CONTRADICTS",
+  "DEFINES",
+  "CONTEXTUALIZES",
+]);
 
 export const evidenceItemSchema = z.object({
-  id: z.string(),
-  sourceId: z.string(),
-  sourceType: z.string(),
-  sourceName: z.string(),
-  text: z.string(),
-  locator: z.string(),
+  id: idSchema,
+  chunkId: idSchema,
+  recordId: idSchema,
+  sourceId: idSchema,
+  sourceType: sourceTypeSchema,
+  sourceName: z.string().min(1),
+  text: z.string().min(1),
+  locator: z.string().min(1),
   url: z.string().url().optional(),
-  relation: z.enum(["SUPPORTS", "QUALIFIES", "CONTRADICTS", "DEFINES"]).optional(),
+  relation: evidenceRelationSchema.optional(),
+  viewId: idSchema.nullable().default(null),
 });
 
-export type EvidenceItem = z.infer<typeof evidenceItemSchema>;
-
 export const evidencePackSchema = z.object({
-  question: z.string(),
+  question: z.string().min(1),
   evidence: z.array(evidenceItemSchema),
 });
 
+export type EvidenceItem = z.infer<typeof evidenceItemSchema>;
 export type EvidencePack = z.infer<typeof evidencePackSchema>;

@@ -1,0 +1,12 @@
+{
+  "id": "session_demo_001",
+  "userProfile": {
+    "language": "ar",
+    "religiousBackground": "prefer_not_to_say",
+    "goal": "learn_about_islam",
+    "explanationDepth": "balanced",
+    "interests": ["العقيدة", "أسئلة الوجود والمعنى"]
+  },
+  "createdAt": "2026-10-04T18:00:00Z",
+  "updatedAt": "2026-10-04T18:00:00Z"
+}

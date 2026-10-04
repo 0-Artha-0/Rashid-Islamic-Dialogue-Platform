@@ -1,12 +1,5 @@
-import type { AtomicClaim } from "@/lib/schemas/claims";
+import type { AtomicClaim, ClaimVerification } from "@/lib/schemas/claims";
 import type { EvidenceItem } from "@/lib/schemas/evidence";
-
-export type ClaimVerification = {
-  claimId: string;
-  status: "SUPPORTED" | "PARTIAL" | "CONFLICTED" | "UNSUPPORTED";
-  reason: string;
-  evidenceIds: string[];
-};
 
 export async function verifyClaims(
   _claims: AtomicClaim[],
