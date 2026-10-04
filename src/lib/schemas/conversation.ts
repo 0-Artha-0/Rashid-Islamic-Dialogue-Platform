@@ -1,21 +1,24 @@
 import { z } from "zod";
+import { idSchema, isoDateTimeSchema } from "./common";
 
 export const conversationSchema = z.object({
-  id: z.string(),
-  sessionId: z.string(),
-  title: z.string().nullable().default(null),
-  primaryTopic: z.string().nullable().default(null),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  id: idSchema,
+  sessionId: idSchema,
+  title: z.string().min(1).nullable().default(null),
+  primaryTopic: z.string().min(1).nullable().default(null),
+  createdAt: isoDateTimeSchema,
+  updatedAt: isoDateTimeSchema,
 });
 
+export const conversationRoleSchema = z.enum(["user", "assistant", "system"]);
+
 export const conversationTurnSchema = z.object({
-  id: z.string(),
-  conversationId: z.string(),
-  role: z.enum(["user", "assistant"]),
+  id: idSchema,
+  conversationId: idSchema,
+  role: conversationRoleSchema,
   content: z.string(),
-  evidenceIds: z.array(z.string()).default([]),
-  createdAt: z.string(),
+  evidenceIds: z.array(idSchema).default([]),
+  createdAt: isoDateTimeSchema,
 });
 
 export type Conversation = z.infer<typeof conversationSchema>;
