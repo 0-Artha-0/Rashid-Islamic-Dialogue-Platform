@@ -4,13 +4,19 @@ import { createEmptyDialogueState } from "@/lib/graphs/dialogueState";
 export async function POST() {
   return NextResponse.json(
     {
+      responseId: "unimplemented",
+      conversationId: "unimplemented",
+      status: "error",
       message: "RASHID chat pipeline is not implemented yet.",
-      route: "UNIMPLEMENTED",
+      contentLevel: "B",
+      route: "EXPLAIN",
       citations: [],
       claims: [],
       dialogueState: createEmptyDialogueState(),
-      showReferral: false,
-      showDisagreement: false,
+      discussionMap: { nodes: [], edges: [] },
+      disagreement: null,
+      referral: null,
+      suggestedActions: [],
     },
     { status: 501 },
   );
