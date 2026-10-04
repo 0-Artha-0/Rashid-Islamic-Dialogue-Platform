@@ -1,13 +1,7 @@
-import type { EvidenceItem } from "@/lib/schemas/evidence";
+import type { EvidenceCandidate, RetrievalQuery } from "@/lib/schemas/retrieval";
 
-export type RetrieveEvidenceInput = {
-  query: string;
-  route?: string;
-  conceptIds?: string[];
-  sourceTypes?: string[];
-  topK?: number;
-};
-
-export async function retrieveEvidence(_input: RetrieveEvidenceInput): Promise<EvidenceItem[]> {
+export async function retrieveEvidence(
+  _input: RetrievalQuery,
+): Promise<EvidenceCandidate[]> {
   return [];
 }
