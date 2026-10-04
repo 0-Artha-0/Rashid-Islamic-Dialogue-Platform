@@ -1,1 +1,1 @@
-export type Language = "ar" | "en";
+export type { Language } from "@/lib/schemas/common";
