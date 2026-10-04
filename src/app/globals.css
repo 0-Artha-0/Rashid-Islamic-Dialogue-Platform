@@ -19,5 +19,5 @@ html, body { margin: 0; padding: 0; }
 body {
   background: var(--color-ivory);
   color: var(--color-text);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-alexandria), Arial, Helvetica, sans-serif;
 }
