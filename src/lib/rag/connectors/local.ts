@@ -46,7 +46,7 @@ export class LocalCorpusConnector implements RetrievalConnector {
         language: chunk.language,
         locator: chunk.locator,
         url: chunk.url,
-        score: scores[index] + languageBoost(chunk.language, query),
+        score: scores[index] > 0 ? scores[index] + languageBoost(chunk.language, query) : 0,
         retrievalMethod: "keyword" as const,
         conceptIds: chunk.conceptIds
       }))
