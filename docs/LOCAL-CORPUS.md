@@ -21,7 +21,7 @@ These are intentionally empty until an approved source payload/access is availab
 - approved Islamic terminology
 - introductory Islam/Da'wah material
 - approved misconceptions / FAQs
-- a small demo-topic guarantee set
+- a small demo-topic guarantee set in `data/tests/demo-guarantee-set.json`, currently covered by the supplied Dorar subset
 
 Do not fabricate local records for these categories.
 
@@ -35,7 +35,7 @@ Do not fabricate local records for these categories.
 
 `npx tsx scripts/audit-corpus.ts`
 
-The audit writes `data/tests/corpus-audit.json` with corpus size, languages, source types, source IDs, Dorar grading distribution, and demo-guarantee coverage status.
+The audit writes `data/tests/corpus-audit.json` with corpus size, languages, source types, source IDs, Dorar grading distribution, inspection results, and exact-query demo-guarantee coverage.
 
 ## Safety
 
