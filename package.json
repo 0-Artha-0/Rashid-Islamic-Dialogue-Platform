@@ -12,7 +12,9 @@
     "test:mcp": "tsx scripts/test-mcp.ts",
     "test:hybrid-retrieval": "tsx scripts/test-hybrid-retrieval.ts",
     "test:router": "tsx --env-file=.env.local scripts/test-router.ts",
-    "test:retrieval-hitk": "tsx scripts/test-retrieval-hitk.ts"
+    "test:retrieval-hitk": "tsx scripts/test-retrieval-hitk.ts",
+    "test:claims": "tsx scripts/test-claims.ts",
+    "test:evidence-gate": "tsx scripts/test-evidence-gate.ts"
   },
   "dependencies": {
     "@google/genai": "2.24.0",
