@@ -8,7 +8,8 @@
     "start": "next start",
     "validate:mocks": "tsx scripts/validate-mocks.ts",
     "test:db": "tsx --env-file=.env.local scripts/test-db.ts",
-    "test:retrieval": "tsx scripts/test-retrieval.ts"
+    "test:retrieval": "tsx scripts/test-retrieval.ts",
+    "test:mcp": "tsx scripts/test-mcp.ts"
   },
   "dependencies": {
     "@google/genai": "2.24.0",
