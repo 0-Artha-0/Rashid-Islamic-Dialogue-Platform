@@ -16,7 +16,8 @@
     "test:dialogue": "tsx --env-file=.env.local scripts/test-dialogue.ts",
     "test:claims": "tsx scripts/test-claims.ts",
     "test:evidence-gate": "tsx scripts/test-evidence-gate.ts",
-    "test:chat-api": "tsx scripts/test-chat-api.ts"
+    "test:chat-api": "tsx scripts/test-chat-api.ts",
+    "test:planner": "tsx scripts/test-planner.ts"
   },
   "dependencies": {
     "@google/genai": "2.24.0",
