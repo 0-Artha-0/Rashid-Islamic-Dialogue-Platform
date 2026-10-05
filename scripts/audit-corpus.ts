@@ -50,11 +50,20 @@ let demoCoverage: JsonRecord = { status: "not_configured", scenarios: 0, covered
 if (fs.existsSync(demoPath)) {
   const demo = readJson(demoPath);
   const scenarios = Array.isArray(demo) ? demo : (demo.scenarios ?? []);
+  const covered = scenarios.filter((scenario: JsonRecord) =>
+    normalized.some((row: JsonRecord) =>
+      row.sourceId === scenario.expectedSourceId &&
+      row.metadata?.query === scenario.query
+    )
+  );
   demoCoverage = {
     status: "configured",
+    basis: "exact normalized metadata.query + expectedSourceId presence",
     scenarios: scenarios.length,
-    covered: scenarios.filter((s: JsonRecord) => s.covered === true).length,
-    missing: scenarios.filter((s: JsonRecord) => s.covered !== true).map((s: JsonRecord) => s.id ?? "unknown")
+    covered: covered.length,
+    missing: scenarios
+      .filter((scenario: JsonRecord) => !covered.includes(scenario))
+      .map((scenario: JsonRecord) => scenario.id ?? "unknown")
   };
 }
 
