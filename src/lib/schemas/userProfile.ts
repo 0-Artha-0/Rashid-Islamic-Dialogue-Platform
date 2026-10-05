@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { languageSchema } from "./common";
+import { contentLanguageSchema, uiLanguageSchema } from "./common";
 
 export const religiousBackgroundSchema = z.enum([
   "muslim",
@@ -20,7 +20,8 @@ export const userGoalSchema = z.enum([
 export const explanationDepthSchema = z.enum(["brief", "balanced", "detailed"]);
 
 export const userProfileSchema = z.object({
-  language: languageSchema,
+  uiLanguage: uiLanguageSchema,
+  preferredResponseLanguage: contentLanguageSchema,
   religiousBackground: religiousBackgroundSchema.optional(),
   goal: userGoalSchema,
   explanationDepth: explanationDepthSchema,
