@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { contentLanguageSchema } from "./common";
 import { dialogueStateSchema } from "./dialogue";
 import { userProfileSchema } from "./userProfile";
 
@@ -19,6 +20,7 @@ export const routerInputSchema = z.object({
 });
 
 export const routerOutputSchema = z.object({
+  queryLanguage: contentLanguageSchema,
   contentLevel: contentLevelSchema,
   route: routeSchema,
   ambiguous: z.boolean(),
