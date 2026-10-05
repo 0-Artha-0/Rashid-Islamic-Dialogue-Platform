@@ -1,4 +1,3 @@
-import "server-only";
 import { randomUUID } from "node:crypto";
 import { getDatabaseClient } from "./client";
 import { conversationSchema, type Conversation } from "@/lib/schemas/conversation";
