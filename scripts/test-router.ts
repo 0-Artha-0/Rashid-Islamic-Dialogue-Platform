@@ -45,9 +45,19 @@ const tests: TestCase[] = [
     expected: { queryLanguage: "ar", route: "CLARIFY", ambiguous: true },
   },
   {
-    name: "Hostile but understandable",
+    name: "Explicit objection",
     input: { question: "Why does Islam ban this? That makes no sense." },
+    expected: { queryLanguage: "en", contentLevel: "C", route: "DISAGREEMENT", ambiguous: false },
+  },
+  {
+    name: "Hostile tone but explanatory intent",
+    input: { question: "This religion is stupid. Why do Muslims fast during Ramadan?" },
     expected: { queryLanguage: "en", contentLevel: "B", route: "EXPLAIN", ambiguous: false },
+  },
+  {
+    name: "Explicit challenge requiring disagreement handling",
+    input: { question: "Islam bans this, but that makes no sense. How can that be justified?" },
+    expected: { queryLanguage: "en", contentLevel: "C", route: "DISAGREEMENT", ambiguous: false },
   },
 ];
 
