@@ -3,10 +3,13 @@
   "conversationId": "conv_demo_001",
   "message": "ما معنى التوحيد؟",
   "userProfile": {
-    "language": "ar",
     "religiousBackground": "prefer_not_to_say",
     "goal": "learn_about_islam",
     "explanationDepth": "balanced",
-    "interests": ["العقيدة"]
+    "interests": [
+      "العقيدة"
+    ],
+    "uiLanguage": "ar",
+    "preferredResponseLanguage": "ar"
   }
 }
