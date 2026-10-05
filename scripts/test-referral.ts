@@ -47,7 +47,12 @@ const localized = buildReferralState({
 });
 assert.equal(localized.message, "Cette question nécessite l’avis d’un spécialiste qualifié.");
 
-assert.throws(\n  () => buildReferralState({ routerOutput: personalArabic, preferredResponseLanguage: "ar", localizedMessages: { ar: "هذا حلال لك شخصيًا." } }),\n  (error) => error instanceof ReferralStateError,\n);\n\nconst schemaSafe = buildReferralState({ routerOutput: personalArabic, uiLanguage: "en", safeGeneralInformation: null });
+assert.throws(
+  () => buildReferralState({ routerOutput: personalArabic, preferredResponseLanguage: "ar", localizedMessages: { ar: "هذا حلال لك شخصيًا." } }),
+  (error) => error instanceof ReferralStateError,
+);
+
+const schemaSafe = buildReferralState({ routerOutput: personalArabic, uiLanguage: "en", safeGeneralInformation: null });
 assert.equal(typeof schemaSafe.message, "string");
 assert.equal(schemaSafe.reason, "personal_fatwa");
 
