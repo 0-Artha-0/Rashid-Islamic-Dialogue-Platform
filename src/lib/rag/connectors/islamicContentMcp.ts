@@ -363,10 +363,7 @@ function normalize(
     "snippet"
   ]);
 
-  const url =
-    stringField(object, ["url", "sourceUrl", "link"]) ??
-    stringField(object, ["locator", "reference", "path"]) ??
-    undefined;
+  const url = stringField(object, ["url", "sourceUrl", "link"]);
   const locator =
     stringField(object, ["locator", "reference", "path", "id", "key"]) ?? url;
 
