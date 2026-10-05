@@ -2,6 +2,7 @@ import fs from "node:fs";
 import readline from "node:readline";
 import { baseSourceRecordSchema, chunkRecordSchema } from "../src/lib/schemas/corpus";
 
+async function main() {
 type RegistryEntry = {
   sourceId: string;
   sourceType: string;
@@ -116,3 +117,10 @@ const result = {
 
 console.log(JSON.stringify(result, null, 2));
 if (!result.pass) process.exitCode = 1;
+
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
