@@ -88,7 +88,7 @@ export function buildReferralState(rawInput: BuildReferralStateInput): ReferralS
     specialistType,
   });
 
-  if (/\b(halal|haram)\b/i.test(state.message)) {
+  if (/\b(halal|haram)\b/i.test(state.message) || /حلال|حرام/.test(state.message)) {
     throw new ReferralStateError("Referral message must not issue a personalized halal/haram ruling.");
   }
 
