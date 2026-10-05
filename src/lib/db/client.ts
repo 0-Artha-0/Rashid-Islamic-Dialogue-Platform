@@ -1,4 +1,12 @@
-// Database client wiring will be added after the access method is selected.
-export function getDatabaseClient(): never {
-  throw new Error("Database client is not configured yet.");
+import "server-only";
+import { neon } from "@neondatabase/serverless";
+
+export function getDatabaseClient() {
+  const databaseUrl = process.env.DATABASE_URL;
+
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is not configured.");
+  }
+
+  return neon(databaseUrl);
 }
