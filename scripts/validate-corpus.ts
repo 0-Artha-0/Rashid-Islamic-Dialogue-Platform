@@ -40,6 +40,7 @@ if (!fs.existsSync(registryPath)) throw new Error("Source registry is missing.")
 
 const registry = JSON.parse(fs.readFileSync(registryPath, "utf8")) as RegistryEntry[];
 const registryById = new Map(registry.map(entry => [entry.sourceId, entry]));
+const dorarRegistryCount = registryById.get("dorar-hadith-local")?.recordCount;
 const normalizedRead = await readJsonl(normalizedPath);
 const chunkRead = await readJsonl(processedPath);
 
@@ -95,6 +96,14 @@ for (const { value, line } of chunkRead.rows) {
   } catch (error) {
     failures.push({ scope: "chunks", line, error: error instanceof Error ? error.message : String(error) });
   }
+}
+
+const dorarRecords = normalizedRead.rows.filter(({ value }) => value?.sourceId === "dorar-hadith-local").length;
+if (dorarRegistryCount != null && dorarRecords !== dorarRegistryCount) {
+  failures.push({
+    scope: "registry",
+    error: `Dorar recordCount mismatch: registry=${dorarRegistryCount}, normalized=${dorarRecords}`
+  });
 }
 
 const result = {
