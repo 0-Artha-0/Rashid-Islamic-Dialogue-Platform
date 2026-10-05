@@ -230,6 +230,12 @@ export async function handleChatRequest(
       claims,
     }, deps);
 
+    deps.buildEvidenceGraph({
+      claims,
+      evidence: evidencePack.evidence,
+      verifications: [],
+    });
+
     const evidenceIds = evidencePack.evidence.map((item) => item.id);
     const state = await persistState(conversation.id, input, previousState, result, evidenceIds, deps);
     const final = structuredResponseSchema.parse({
