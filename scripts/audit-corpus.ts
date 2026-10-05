@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import readline from "node:readline";
 
+async function main() {
 type JsonRecord = Record<string, any>;
 
 const registryPath = "data/source-registry.json";
@@ -97,3 +98,10 @@ const audit = {
 fs.mkdirSync("data/tests", { recursive: true });
 fs.writeFileSync(outputPath, JSON.stringify(audit, null, 2) + "\n");
 console.log(JSON.stringify(audit, null, 2));
+
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
