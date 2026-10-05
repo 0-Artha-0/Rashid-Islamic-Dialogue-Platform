@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import readline from "node:readline";
 import path from "node:path";
 
 const defaultInput = "data/raw/dorar/dorar-hadith.jsonl";
@@ -24,15 +23,11 @@ function bump(map: Map<string, number>, key: string) {
 if (!input) throw new Error("No Dorar JSONL found in data/raw/dorar.");
 if (!fs.existsSync(input)) throw new Error("Input not found: " + input);
 
-const rl = readline.createInterface({
-  input: fs.createReadStream(input, { encoding: "utf8" }),
-  crlfDelay: Infinity
-});
-
+const lines = fs.readFileSync(input, "utf8").split(/\r?\n/);
 let total = 0;
 let malformed = 0;
 
-for await (const line of rl) {
+for (const line of lines) {
   if (!line.trim()) continue;
   total++;
   try {
