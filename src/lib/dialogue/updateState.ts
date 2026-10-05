@@ -73,11 +73,15 @@ function validateInvariants(
     throw new Error("DialogueState contains duplicate point IDs.");
   }
 
-  if (state.activePointId) {
-    const active = pointById.get(state.activePointId);
-    if (!active || active.status !== "active") {
-      throw new Error("activePointId must reference an active point.");
-    }
+  const activePoints = state.points.filter((point) => point.status === "active");
+  if (activePoints.length > 1) {
+    throw new Error("DialogueState may contain at most one active point.");
+  }
+  if (activePoints.length === 1 && state.activePointId !== activePoints[0].id) {
+    throw new Error("activePointId must reference the single active point.");
+  }
+  if (activePoints.length === 0 && state.activePointId !== null) {
+    throw new Error("activePointId must be null when no point is active.");
   }
 
   for (const point of state.points) {
