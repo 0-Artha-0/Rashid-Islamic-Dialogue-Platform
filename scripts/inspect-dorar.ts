@@ -1,7 +1,13 @@
 import fs from "node:fs";
 import readline from "node:readline";
 
-const input = process.argv[2] ?? "data/raw/dorar/dorar-hadith.jsonl";
+const defaultInput = "data/raw/dorar/dorar-hadith.jsonl";
+const input = process.argv[2] ?? process.env.DORAR_INPUT ?? (fs.existsSync(defaultInput)
+  ? defaultInput
+  : fs.readdirSync("data/raw/dorar", { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".jsonl"))
+      .map((entry) => path.join("data/raw/dorar", entry.name))
+      .sort()[0]);
 const required = ["source","query","text","narrator","muhaddith","source_book","reference","grading","key"];
 
 const missing = new Map<string, number>();
@@ -14,7 +20,7 @@ function bump(map: Map<string, number>, key: string) {
   map.set(key, (map.get(key) ?? 0) + 1);
 }
 
-if (!fs.existsSync(input)) throw new Error(`Input not found: ${input}`);
+if (!input) throw new Error("No Dorar JSONL found in data/raw/dorar.");\nif (!fs.existsSync(input)) throw new Error("Input not found: " + input);
 
 const rl = readline.createInterface({
   input: fs.createReadStream(input, { encoding: "utf8" }),
