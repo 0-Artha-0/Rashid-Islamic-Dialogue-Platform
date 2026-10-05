@@ -87,11 +87,16 @@ async function persistState(
   evidenceIds: string[],
   deps: ChatPipelineDependencies,
 ): Promise<DialogueState> {
+  const allowedEvidenceIds = [...new Set([
+    ...previousState.evidenceUsed,
+    ...evidenceIds,
+  ])];
+
   const nextState = await deps.updateDialogueState({
     previousDialogueState: previousState,
     userQuestion: input.message,
     verifiedResponseSummary: result.message,
-    evidenceIdsUsed: evidenceIds,
+    evidenceIdsUsed: allowedEvidenceIds,
   });
   return deps.saveDialogueState(conversationId, nextState);
 }
