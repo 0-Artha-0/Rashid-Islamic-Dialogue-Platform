@@ -1,1 +1,43 @@
-[]
+[
+  {
+    "sourceId": "dorar-hadith-local",
+    "sourceName": "Dorar.net Hadith",
+    "sourceType": "hadith",
+    "acquisitionMethod": "supplied JSONL dataset",
+    "language": "ar",
+    "recordCount": 2000,
+    "originalFormat": "JSONL",
+    "normalizationMethod": "Dorar fields mapped to BaseSourceRecord; source-specific fields retained in metadata",
+    "chunkingRule": "one complete hadith record per semantic chunk",
+    "importantMetadata": ["narrator","muhaddith","sourceBook","reference","grading","query","originalKey"],
+    "provenanceMethod": "raw JSONL line number + original key + supplied source/query metadata",
+    "scope": "curated local hadith subset; not a complete hadith library"
+  },
+  {
+    "sourceId": "approved-terminology-mvp",
+    "sourceName": "Approved Islamic terminology resources",
+    "sourceType": "terminology",
+    "acquisitionMethod": "pending approved source payload/access",
+    "language": "ar",
+    "recordCount": 0,
+    "scope": "MVP terminology subset"
+  },
+  {
+    "sourceId": "approved-dawah-mvp",
+    "sourceName": "Approved Islamic content / Da'wah resources",
+    "sourceType": "other_approved",
+    "acquisitionMethod": "pending approved source payload/access",
+    "language": "ar",
+    "recordCount": 0,
+    "scope": "MVP introductory subset"
+  },
+  {
+    "sourceId": "approved-misconceptions-mvp",
+    "sourceName": "Approved misconception / FAQ resources",
+    "sourceType": "misconception",
+    "acquisitionMethod": "pending approved source payload/access",
+    "language": "ar",
+    "recordCount": 0,
+    "scope": "MVP misconceptions/common-questions subset"
+  }
+]
