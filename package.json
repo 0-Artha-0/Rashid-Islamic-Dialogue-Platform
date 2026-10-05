@@ -10,7 +10,8 @@
     "test:db": "tsx --env-file=.env.local scripts/test-db.ts",
     "inspect:corpus": "tsx scripts/inspect-dorar.ts",
     "build:corpus": "tsx scripts/build-corpus.ts",
-    "validate:corpus": "tsx scripts/validate-corpus.ts"
+    "validate:corpus": "tsx scripts/validate-corpus.ts",
+    "audit:corpus": "tsx scripts/audit-corpus.ts"
   },
   "dependencies": {
     "@google/genai": "2.24.0",
