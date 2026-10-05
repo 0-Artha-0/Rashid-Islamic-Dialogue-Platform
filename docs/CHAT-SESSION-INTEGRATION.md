@@ -26,17 +26,31 @@ Because the request contract requires `conversationId`, a new conversation is cr
 8. Short-circuit CLARIFY and REFERRAL without Retrieval.
 9. For evidence routes, build the existing RetrievalQuery, call `retrieveEvidence()`, then `buildEvidencePack()`.
 10. If the EvidencePack is empty, return `insufficient_evidence` safely.
-11. Use the optional H Claim Gate boundary when supplied.
+11. Run the real Track H Claim Builder + Claim-Evidence Gate on evidence routes through the injectable `claimGate` dependency; production wiring supplies the real H implementation.
 12. Build the existing DiscussionMap/EvidenceGraph through Track I modules.
 13. Update and persist DialogueState through `updateDialogueState()` and `saveDialogueState()`.
 14. Save the assistant turn corresponding to the returned message.
 15. Validate the final object with `structuredResponseSchema`.
 
-## H boundary
+## H integration boundary
 
-Track H is not merged into current `dev`, so J does not copy its implementation. `ChatPipelineDependencies.claimGate` is an injectable boundary:
+Track H is now available on `dev`. J does not copy or redesign H. `ChatPipelineDependencies.claimGate` remains injectable for deterministic tests, while `defaultChatDependencies` supplies the real `buildClaims()` + `verifyClaims()` implementation:
 
 ```ts
+// Production adapter
+claimGate: {
+  run: async (candidateText, evidencePack) => {
+    const claims = await buildClaims(candidateText, {
+      question: evidencePack.question,
+      evidenceIds: evidencePack.evidence.map((item) => item.id),
+    });
+    const verifications = await verifyClaims({ claims, evidencePack });
+    return { claims, verifications };
+  },
+}
+
+// Injectable boundary
+
 type ClaimGateDependency = {
   run: (candidateText: string, evidencePack: EvidencePack) => Promise<{
     claims: AtomicClaim[];
@@ -46,6 +60,10 @@ type ClaimGateDependency = {
 ```
 
 When H is available, the dependency can call `buildClaims()` and `verifyClaims()` directly. There are no production fake claims in J.
+
+## Pipeline architecture
+
+`routeQuestion()` (Track E) → `retrieveEvidence()` / `buildEvidencePack()` (Track F) → `buildClaims()` / `verifyClaims()` (Track H) → `updateDialogueState()` / `buildDiscussionMap()` / `buildEvidenceGraph()` (Track I) → J persistence + `StructuredResponse` API assembly. A final Writer is intentionally not implemented in J.
 
 ## I integration
 
@@ -61,7 +79,7 @@ Dialogue state is therefore loaded before each turn and persisted after successf
 
 ## Writer limitation
 
-A final Writer module is not present on current `dev`. J intentionally does not create a new Writer architecture. For an evidence route, the API returns the actual evidence/citations and a safe integration-boundary message. The future Writer supplies final prose without changing the session lifecycle.
+A final Writer module is not implemented yet. J intentionally does not create a new Writer architecture. For an evidence route, the API returns the actual evidence/citations and a safe integration-boundary message. The future Writer supplies final prose without changing the session lifecycle.
 
 ## Failure behavior
 
