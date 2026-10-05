@@ -13,7 +13,8 @@
     "test:hybrid-retrieval": "tsx scripts/test-hybrid-retrieval.ts",
     "test:router": "tsx --env-file=.env.local scripts/test-router.ts",
     "test:retrieval-hitk": "tsx scripts/test-retrieval-hitk.ts",
-    "test:dialogue": "tsx --env-file=.env.local scripts/test-dialogue.ts"
+    "test:dialogue": "tsx --env-file=.env.local scripts/test-dialogue.ts",
+    "test:chat-api": "tsx scripts/test-chat-api.ts"
   },
   "dependencies": {
     "@google/genai": "2.24.0",
