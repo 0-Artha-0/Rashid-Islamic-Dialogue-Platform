@@ -1,4 +1,3 @@
-import "server-only";
 import { getDatabaseClient } from "./client";
 import { dialogueStateSchema, type DialogueState } from "@/lib/schemas/dialogue";
 
