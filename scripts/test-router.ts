@@ -45,38 +45,57 @@ const tests: TestCase[] = [
     expected: { queryLanguage: "ar", route: "CLARIFY", ambiguous: true },
   },
   {
-    name: "Hostile but understandable",
+    name: "Explicit objection",
     input: { question: "Why does Islam ban this? That makes no sense." },
+    expected: { queryLanguage: "en", contentLevel: "C", route: "DISAGREEMENT", ambiguous: false },
+  },
+  {
+    name: "Hostile tone but explanatory intent",
+    input: { question: "This religion is stupid. Why do Muslims fast during Ramadan?" },
     expected: { queryLanguage: "en", contentLevel: "B", route: "EXPLAIN", ambiguous: false },
+  },
+  {
+    name: "Explicit challenge requiring disagreement handling",
+    input: { question: "Islam bans this, but that makes no sense. How can that be justified?" },
+    expected: { queryLanguage: "en", contentLevel: "C", route: "DISAGREEMENT", ambiguous: false },
   },
 ];
 
-let passed = 0;
+async function main() {
+  let passed = 0;
 
-for (const test of tests) {
-  console.log(`\n→ ${test.name}`);
-  try {
-    const result = await routeQuestion(test.input);
-    console.log(JSON.stringify(result, null, 2));
-
-    const failures: string[] = [];
-    for (const [key, expectedValue] of Object.entries(test.expected)) {
-      const actualValue = result[key as keyof typeof result];
-      if (actualValue !== expectedValue) {
-        failures.push(`${key}: expected ${String(expectedValue)}, got ${String(actualValue)}`);
+  for (const test of tests) {
+    console.log(`\n→ ${test.name}`);
+    try {
+      const result = await routeQuestion(test.input);
+      console.log(JSON.stringify(result, null, 2));
+  
+      const failures: string[] = [];
+      for (const [key, expectedValue] of Object.entries(test.expected)) {
+        const actualValue = result[key as keyof typeof result];
+        if (actualValue !== expectedValue) {
+          failures.push(`${key}: expected ${String(expectedValue)}, got ${String(actualValue)}`);
+        }
       }
+  
+      if (failures.length) {
+        console.error("  ✗", failures.join("; "));
+      } else {
+        passed++;
+        console.log("  ✓ expected routing");
+      }
+    } catch (error) {
+      console.error("  ✗", error instanceof Error ? error.message : String(error));
     }
-
-    if (failures.length) {
-      console.error("  ✗", failures.join("; "));
-    } else {
-      passed++;
-      console.log("  ✓ expected routing");
-    }
-  } catch (error) {
-    console.error("  ✗", error instanceof Error ? error.message : String(error));
   }
+  
+  console.log(`\nRouter smoke test: ${passed}/${tests.length} passed.`);
+
+  if (passed !== tests.length) process.exitCode = 1;
 }
 
-console.log(`\nRouter smoke test: ${passed}/${tests.length} passed.`);
-if (passed !== tests.length) process.exitCode = 1;
+main().catch((error) => {
+  console.error("\n✗ Router smoke test failed.");
+  console.error(error);
+  process.exitCode = 1;
+});
