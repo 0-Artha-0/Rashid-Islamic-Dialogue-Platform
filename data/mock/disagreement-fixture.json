@@ -1,0 +1,42 @@
+
+{
+  "question": "Which view applies in this controlled example?",
+  "evidence": [
+    {
+      "id": "EA", "chunkId": "CHA", "recordId": "RA", "sourceId": "SA",
+      "sourceType": "terminology", "sourceName": "Approved source A",
+      "text": "Evidence A supports View A.", "locator": "fixture:A",
+      "relation": "SUPPORTS", "viewId": "view-a"
+    },
+    {
+      "id": "EB", "chunkId": "CHB", "recordId": "RB", "sourceId": "SB",
+      "sourceType": "fiqh", "sourceName": "Approved source B",
+      "text": "Evidence B supports View B.", "locator": "fixture:B",
+      "relation": "SUPPORTS", "viewId": "view-b"
+    },
+    {
+      "id": "ES", "chunkId": "CHS", "recordId": "RS", "sourceId": "SS",
+      "sourceType": "fiqh", "sourceName": "Shared approved source",
+      "text": "Both supplied sources support the shared point.", "locator": "fixture:shared",
+      "relation": "SUPPORTS", "viewId": "view-a"
+    },
+    {
+      "id": "ES2", "chunkId": "CHS2", "recordId": "RS2", "sourceId": "SS2",
+      "sourceType": "fiqh", "sourceName": "Shared approved source 2",
+      "text": "The same shared point is supported from the second view.", "locator": "fixture:shared-2",
+      "relation": "SUPPORTS", "viewId": "view-b"
+    }
+  ],
+  "claims": [
+    { "id": "claim-a", "text": "View A holds the first position in this fixture.", "evidenceIds": ["EA"] },
+    { "id": "claim-b", "text": "View B holds the second position in this fixture.", "evidenceIds": ["EB"] },
+    { "id": "claim-shared", "text": "Both views support the shared point.", "evidenceIds": ["ES", "ES2"] },
+    { "id": "claim-unsupported", "text": "This unsupported claim must not become a view.", "evidenceIds": ["EA"] }
+  ],
+  "verifications": [
+    { "claimId": "claim-a", "status": "SUPPORTED", "reason": "Evidence A supports the claim.", "evidenceIds": ["EA"] },
+    { "claimId": "claim-b", "status": "SUPPORTED", "reason": "Evidence B supports the claim.", "evidenceIds": ["EB"] },
+    { "claimId": "claim-shared", "status": "SUPPORTED", "reason": "Both supplied evidence items support the shared point.", "evidenceIds": ["ES", "ES2"] },
+    { "claimId": "claim-unsupported", "status": "UNSUPPORTED", "reason": "The supplied evidence does not establish this claim.", "evidenceIds": [] }
+  ]
+}
