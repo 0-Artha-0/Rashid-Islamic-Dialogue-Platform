@@ -55,7 +55,7 @@ Connectors run with `Promise.allSettled`; a failing connector cannot fabricate o
 ## Testing
 `npm run test:retrieval` uses `data/mock/retrieval-chunks.json`, explicitly **TEST FIXTURE ONLY**, and disables live MCP for deterministic tests. It covers terminology, Quran, hadith, explanatory, multilingual, and no-evidence queries and validates EvidencePack construction.
 
-A live MCP smoke test was not claimed in this implementation because the current execution environment cannot make outbound HTTP connections.
+A live MCP smoke test is implemented in `scripts/test-mcp.ts` and has been verified from a developer machine against the official endpoint. The test confirms the documented `search` tool is callable and that returned evidence preserves text plus a source locator. `scripts/test-hybrid-retrieval.ts` also verifies dispatcher selection, deduplication, ranking, MCP failure fallback, and EvidencePack provenance.
 
 ## Track C
 When Track C supplies real ChunkRecord JSONL, set `RASHID_LOCAL_CORPUS_PATH` to that processed file. The retrieval architecture does not change.
