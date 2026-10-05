@@ -34,7 +34,7 @@ export async function createConversation(input: {
   const sql = getDatabaseClient();
   const id = randomUUID();
 
-  const rows = await sql(
+  const rows = await sql.query(
     `INSERT INTO conversations (id, session_id, title, primary_topic)
      VALUES ($1, $2, $3, $4)
      RETURNING id, session_id, title, primary_topic, created_at, updated_at`,
@@ -46,7 +46,7 @@ export async function createConversation(input: {
 
 export async function getConversation(id: string): Promise<Conversation | null> {
   const sql = getDatabaseClient();
-  const rows = await sql(
+  const rows = await sql.query(
     `SELECT id, session_id, title, primary_topic, created_at, updated_at
      FROM conversations WHERE id = $1`,
     [id],
