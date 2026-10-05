@@ -40,7 +40,7 @@ export async function saveConversationTurn(input: {
   const id = randomUUID();
   const role = conversationRoleSchema.parse(input.role);
 
-  const rows = await sql(
+  const rows = await sql.query(
     `INSERT INTO conversation_turns
        (id, conversation_id, role, content, evidence_ids)
      VALUES ($1, $2, $3, $4, $5::jsonb)
@@ -55,7 +55,7 @@ export async function listConversationTurns(
   conversationId: string,
 ): Promise<ConversationTurn[]> {
   const sql = getDatabaseClient();
-  const rows = await sql(
+  const rows = await sql.query(
     `SELECT id, conversation_id, role, content, evidence_ids, created_at
      FROM conversation_turns
      WHERE conversation_id = $1
