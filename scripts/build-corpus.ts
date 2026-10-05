@@ -4,6 +4,7 @@ import readline from "node:readline";
 import path from "node:path";
 import { baseSourceRecordSchema, chunkRecordSchema } from "../src/lib/schemas/corpus";
 
+async function main() {
 const defaultRawPath = "data/raw/dorar/dorar-hadith.jsonl";
 const discoveredRawPath = fs.existsSync("data/raw/dorar")
   ? fs.readdirSync("data/raw/dorar", { withFileTypes: true })
@@ -141,3 +142,10 @@ fs.writeFileSync(inspectionPath, JSON.stringify({
 
 fs.writeFileSync(errorPath, JSON.stringify(errors, null, 2));
 console.log(JSON.stringify({ totalRecords: total, normalizedRecords: normalizedCount, generatedChunks: chunkCount, rejectedRecords: errors.length }, null, 2));
+
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
