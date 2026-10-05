@@ -105,8 +105,43 @@ function objects(value: unknown): Record<string, unknown>[] {
   const found: Record<string, unknown>[] = [];
   const seen = new Set<object>();
 
-  const visit = (current: unknown, depth: number) => {
-    if (depth > 8 || current == null) return;
+  const textKeys = [
+    "text",
+    "content",
+    "description",
+    "translation",
+    "body",
+    "snippet",
+    "title"
+  ];
+  const originKeys = [
+    "url",
+    "sourceUrl",
+    "link",
+    "locator",
+    "reference",
+    "path",
+    "id",
+    "key"
+  ];
+
+  const firstString = (
+    object: Record<string, unknown>,
+    keys: string[]
+  ): string | undefined => {
+    for (const key of keys) {
+      const item = object[key];
+      if (typeof item === "string" && item.trim()) return item.trim();
+    }
+    return undefined;
+  };
+
+  const findNested = (
+    current: unknown,
+    keys: string[],
+    depth: number
+  ): string | undefined => {
+    if (depth > 5 || current == null) return undefined;
 
     if (typeof current === "string") {
       const trimmed = current.trim();
@@ -115,14 +150,59 @@ function objects(value: unknown): Record<string, unknown>[] {
         (trimmed.startsWith("[") && trimmed.endsWith("]"))
       ) {
         try {
-          visit(JSON.parse(trimmed), depth + 1);
+          return findNested(JSON.parse(trimmed), keys, depth + 1);
         } catch {}
+      }
+      return undefined;
+    }
+
+    if (Array.isArray(current)) {
+      for (const item of current) {
+        const result = findNested(item, keys, depth + 1);
+        if (result) return result;
+      }
+      return undefined;
+    }
+
+    if (typeof current !== "object") return undefined;
+
+    const object = current as Record<string, unknown>;
+    return (
+      firstString(object, keys) ??
+      Object.values(object)
+        .map((item) => findNested(item, keys, depth + 1))
+        .find((result): result is string => Boolean(result))
+    );
+  };
+
+  const visit = (
+    current: unknown,
+    depth: number,
+    inheritedOrigin?: string
+  ) => {
+    if (depth > 8 || current == null) return;
+
+    if (typeof current === "string") {
+      const trimmed = current.trim();
+
+      if (
+        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+        (trimmed.startsWith("[") && trimmed.endsWith("]"))
+      ) {
+        try {
+          visit(JSON.parse(trimmed), depth + 1, inheritedOrigin);
+        } catch {}
+      } else if (inheritedOrigin && trimmed) {
+        found.push({
+          text: trimmed,
+          locator: inheritedOrigin
+        });
       }
       return;
     }
 
     if (Array.isArray(current)) {
-      current.forEach((item) => visit(item, depth + 1));
+      current.forEach((item) => visit(item, depth + 1, inheritedOrigin));
       return;
     }
 
@@ -132,25 +212,32 @@ function objects(value: unknown): Record<string, unknown>[] {
     if (seen.has(object)) return;
     seen.add(object);
 
-    const hasText = ["text", "content", "description", "translation", "body", "snippet"].some(
-      (key) => typeof object[key] === "string" && object[key].trim()
-    );
-    const hasOrigin = [
-      "url",
-      "sourceUrl",
-      "link",
-      "locator",
-      "reference",
-      "path",
-      "id",
-      "key"
-    ].some((key) => object[key] != null);
+    const ownOrigin = firstString(object, originKeys);
+    const origin = ownOrigin ?? inheritedOrigin;
+    const text = firstString(object, textKeys);
 
-    if (hasText && hasOrigin) {
-      found.push(object);
+    if (text && origin) {
+      found.push({
+        ...object,
+        locator: ownOrigin ?? object.locator ?? origin
+      });
     }
 
-    Object.values(object).forEach((item) => visit(item, depth + 1));
+    Object.values(object).forEach((item) => {
+      visit(item, depth + 1, origin);
+    });
+
+    // Some MCP payloads keep text in one nested object and the URL/reference
+    // in a sibling or metadata object. Preserve that provenance relationship.
+    if (text && !origin) {
+      const nestedOrigin = findNested(object, originKeys, 4);
+      if (nestedOrigin) {
+        found.push({
+          ...object,
+          locator: nestedOrigin
+        });
+      }
+    }
   };
 
   visit(value, 0);
