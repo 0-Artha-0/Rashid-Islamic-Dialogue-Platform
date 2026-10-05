@@ -10,7 +10,8 @@ async function main() {
   }
 
   const profile = {
-    language: "ar" as const,
+    uiLanguage: "ar" as const,
+    preferredResponseLanguage: "ar",
     religiousBackground: "prefer_not_to_say" as const,
     goal: "learn_about_islam" as const,
     explanationDepth: "balanced" as const,
