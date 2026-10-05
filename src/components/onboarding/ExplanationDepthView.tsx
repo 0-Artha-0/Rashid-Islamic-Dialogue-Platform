@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import type { UserProfile } from "@/lib/schemas/userProfile";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 type ExplanationDepth = UserProfile["explanationDepth"];
 
@@ -15,7 +15,7 @@ type ExplanationDepthOption = {
 
 export function ExplanationDepthView() {
   const { locale, t } = useLocale();
-  const [selectedDepth, setSelectedDepth] = useState<ExplanationDepth>("balanced");
+  const { draft, setExplanationDepth } = useOnboarding();
   const options: ExplanationDepthOption[] = [
     { label: t.depth.options.brief, value: "brief" }, { label: t.depth.options.balanced, value: "balanced" }, { label: t.depth.options.detailed, value: "detailed" },
   ];
@@ -63,13 +63,13 @@ export function ExplanationDepthView() {
 
         <div className="mt-2 flex w-full max-w-[500px] flex-col items-center gap-1.5" role="group" aria-label={t.depth.aria}>
           {options.map((option) => {
-            const isSelected = selectedDepth === option.value;
+            const isSelected = draft.explanationDepth === option.value;
             return (
               <button
                 key={option.value}
                 type="button"
                 aria-pressed={isSelected}
-                onClick={() => setSelectedDepth(option.value)}
+                onClick={() => setExplanationDepth(option.value)}
                 className={`flex h-11 w-full items-center justify-center rounded-[12px] bg-[#fffdf8]/35 px-3 text-[13px] font-semibold leading-5 text-[#365f4f] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#365f4f] focus-visible:ring-offset-2 ${
                   isSelected
                     ? "border-2 border-[#365f4f]"

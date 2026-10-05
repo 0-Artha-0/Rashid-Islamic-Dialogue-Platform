@@ -2,25 +2,26 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import type { UserProfile } from "@/lib/schemas/userProfile";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 type ProfileReligiousBackground = NonNullable<UserProfile["religiousBackground"]>;
 
 type ReligiousBackgroundOption = {
   label: string;
+  selection: ProfileReligiousBackground | "interested_in_learning";
   profileValue?: ProfileReligiousBackground;
 };
 
 export function ReligiousBackgroundView() {
   const { locale, t } = useLocale();
+  const { draft, setGoal, setReligiousBackground, setReligiousBackgroundSelection } = useOnboarding();
   const options: ReligiousBackgroundOption[] = [
-    { label: t.religious.muslim, profileValue: "muslim" }, { label: t.religious.nonMuslim, profileValue: "non_muslim" },
-    { label: t.religious.other, profileValue: "other" }, { label: t.religious.interested },
-    { label: t.religious.preferNot, profileValue: "prefer_not_to_say" },
+    { label: t.religious.muslim, selection: "muslim", profileValue: "muslim" }, { label: t.religious.nonMuslim, selection: "non_muslim", profileValue: "non_muslim" },
+    { label: t.religious.other, selection: "other", profileValue: "other" }, { label: t.religious.interested, selection: "interested_in_learning" },
+    { label: t.religious.preferNot, selection: "prefer_not_to_say", profileValue: "prefer_not_to_say" },
   ];
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
   return (
     <main dir={locale === "en" ? "ltr" : "rtl"} className="relative isolate flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-[#f8f4eb] px-4 py-8 text-[#365f4f]">
@@ -65,14 +66,18 @@ export function ReligiousBackgroundView() {
 
         <div className="mt-2 flex w-full max-w-[500px] flex-col items-center gap-1.5" role="group" aria-label="الخلفية الدينية">
           {options.map((option, index) => {
-            const isSelected = selectedOption === index;
+            const isSelected = draft.religiousBackgroundSelection === option.selection;
             const widthClass = index === options.length - 1 ? "w-[calc(100%-32px)]" : "w-full";
             return (
               <button
                 key={option.label}
                 type="button"
                 aria-pressed={isSelected}
-                onClick={() => setSelectedOption(index)}
+                onClick={() => {
+                  setReligiousBackgroundSelection(option.selection);
+                  setReligiousBackground(option.profileValue);
+                  if (option.selection === "interested_in_learning") setGoal("learn_about_islam");
+                }}
                 className={`flex h-11 ${widthClass} items-center justify-center rounded-[12px] bg-[#fffdf8]/35 px-3 text-[13px] font-semibold leading-5 text-[#365f4f] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#365f4f] focus-visible:ring-offset-2 ${
                   isSelected
                     ? "border-2 border-[#365f4f]"

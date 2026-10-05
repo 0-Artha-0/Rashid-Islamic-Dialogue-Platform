@@ -4,18 +4,28 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useRouter } from "next/navigation";
+import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
+import { useSession } from "@/components/session/SessionProvider";
+import { sessionSchema } from "@/lib/schemas/session";
 
-const interestValues = ["العقيدة", "القرآن", "الحديث والسنة", "السيرة", "الفقه", "الأخلاق", "مقارنة الأديان", "الشبهات", "أسئلة الوجود والغاية"] as const;
+const stableInterestValues = ["aqeedah", "quran", "hadith_sunnah", "seerah", "fiqh", "ethics", "comparative_religion", "misconceptions", "existential_questions"] as const;
+
 
 export function InterestsView() {
   const { locale, t } = useLocale();
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const router = useRouter();
+  const { draft, setInterests, finalizeProfile } = useOnboarding();
+  const { setSession } = useSession();
+  const selectedInterests = draft.interests;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<"incomplete" | "session" | null>(null);
 
   const toggleInterest = (interest: string) => {
-    setSelectedInterests((current) =>
-      current.includes(interest)
-        ? current.filter((selected) => selected !== interest)
-        : [...current, interest],
+    setInterests(
+      selectedInterests.includes(interest)
+        ? selectedInterests.filter((selected) => selected !== interest)
+        : [...selectedInterests, interest],
     );
   };
 
@@ -61,10 +71,10 @@ export function InterestsView() {
         </h1>
 
         <div className="mt-2 grid w-full max-w-[500px] grid-cols-2 gap-1.5" role="group" aria-label={t.interests.aria} dir={locale === "en" ? "ltr" : "rtl"}>
-          {interestValues.map((interest, index) => {
+          {stableInterestValues.map((interest, index) => {
             const isSelected = selectedInterests.includes(interest);
             const label = [t.interests.options.creed, t.interests.options.quran, t.interests.options.hadith, t.interests.options.seerah, t.interests.options.fiqh, t.interests.options.ethics, t.interests.options.comparative, t.interests.options.misconception, t.interests.options.existential][index];
-            const spanClass = index === interestValues.length - 1 ? "col-span-2" : "";
+            const spanClass = index === stableInterestValues.length - 1 ? "col-span-2" : "";
             return (
               <button
                 key={interest}
@@ -93,13 +103,47 @@ export function InterestsView() {
               <path d="M16 10H4m0 0 5-5m-5 5 5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </Link>
-          <Link
-            href="/"
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={async () => {
+              if (isSubmitting) return;
+              const finalizedProfile = finalizeProfile();
+              if (!finalizedProfile) {
+                setError("incomplete");
+                return;
+              }
+
+              setError(null);
+              setIsSubmitting(true);
+              try {
+                const response = await fetch("/api/sessions", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ userProfile: finalizedProfile }),
+                });
+                if (response.status !== 201) throw new Error("Session creation failed");
+                const session = sessionSchema.parse(await response.json());
+                setSession(session);
+                router.push("/");
+              } catch {
+                setError("session");
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
             className="inline-flex h-10 min-w-[90px] items-center justify-center rounded-[10px] bg-[#365f4f] px-4 text-[12px] font-semibold leading-4 text-white transition-colors hover:bg-[#2d5143] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#365f4f] focus-visible:ring-offset-2"
           >
             {t.interests.continue}
             {locale === "en" && <span aria-hidden="true" className="ms-1">→</span>}
-          </Link>
+          </button>
+          {error && (
+            <p role="alert" className="basis-full mt-1 text-[9px] leading-4 text-[#9a5d52]">
+              {locale === "en"
+                ? error === "incomplete" ? "Please complete the required selections before continuing." : "Unable to start the session right now. Please try again."
+                : error === "incomplete" ? "يرجى إكمال الاختيارات المطلوبة قبل المتابعة." : "تعذر بدء الجلسة حالياً. حاول مرة أخرى."}
+            </p>
+          )}
         </div>
       </section>
     </main>

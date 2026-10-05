@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import type { UserProfile } from "@/lib/schemas/userProfile";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 type Goal = UserProfile["goal"];
 
@@ -15,7 +15,7 @@ type GoalOption = {
 
 export function GoalView() {
   const { locale, t } = useLocale();
-  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const { draft, setGoal } = useOnboarding();
   const options: GoalOption[] = [
     { label: t.goal.options.learn, value: "learn_about_islam" }, { label: t.goal.options.question, value: "ask_specific_question" },
     { label: t.goal.options.misconception, value: "discuss_misconception" }, { label: t.goal.options.deepen, value: "deepen_understanding" },
@@ -65,13 +65,13 @@ export function GoalView() {
 
         <div className="mt-2 flex w-full max-w-[500px] flex-col items-center gap-1.5" role="group" aria-label={t.goal.aria}>
           {options.map((option) => {
-            const isSelected = selectedGoal === option.value;
+            const isSelected = draft.goal === option.value;
             return (
               <button
                 key={option.value}
                 type="button"
                 aria-pressed={isSelected}
-                onClick={() => setSelectedGoal(option.value)}
+                onClick={() => setGoal(option.value)}
                 className={`flex h-11 w-full items-center justify-center rounded-[12px] bg-[#fffdf8]/35 px-3 text-[13px] font-semibold leading-5 text-[#365f4f] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#365f4f] focus-visible:ring-offset-2 ${
                   isSelected
                     ? "border-2 border-[#365f4f]"

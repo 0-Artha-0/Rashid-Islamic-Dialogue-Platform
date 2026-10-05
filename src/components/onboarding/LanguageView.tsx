@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import type { Language } from "@/lib/schemas/common";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 const languageOptions: { value: Language; label: string }[] = [
   { value: "ar", label: "العربية" },
@@ -13,7 +13,8 @@ const languageOptions: { value: Language; label: string }[] = [
 
 export function LanguageView() {
   const { locale, setLocale, t } = useLocale();
-  const [language, setLanguage] = useState<Language>(locale);
+  const { draft, setUiLanguage, setPreferredResponseLanguage } = useOnboarding();
+  const language = draft.uiLanguage;
 
   return (
     <main dir={locale === "en" ? "ltr" : "rtl"} className="relative isolate flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#f8f4eb] px-4 py-8 text-[#365f4f]">
@@ -65,7 +66,7 @@ export function LanguageView() {
                 type="button"
                 role="radio"
                 aria-checked={isSelected}
-                onClick={() => { setLanguage(option.value); setLocale(option.value); }}
+                onClick={() => { setLocale(option.value); setUiLanguage(option.value); setPreferredResponseLanguage(option.value); }}
                 className={`flex h-10 w-full items-center justify-center rounded-[12px] border bg-[#fffdf8]/35 px-4 text-[12px] font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#365f4f] focus-visible:ring-offset-2 ${
                   isSelected
                     ? "border-2 border-[#365f4f] text-[#365f4f]"
