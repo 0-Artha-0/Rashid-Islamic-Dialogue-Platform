@@ -87,4 +87,20 @@ const partialState = buildDisagreementState({
 assert.match(partialState.views[0].summary, /الدليل جزئي/);
 assert.match(partialState.views[0].label, /الرأي/);
 
+
+const conflictedState = buildDisagreementState({
+  routerOutput,
+  evidencePack,
+  claims: [
+    { id: "conflicted-a", text: "The first point is contested.", evidenceIds: ["EA"] },
+    { id: "conflicted-b", text: "The second point is contested.", evidenceIds: ["EB"] },
+  ],
+  verifications: [
+    { claimId: "conflicted-a", status: "CONFLICTED", reason: "Supplied evidence conflicts.", evidenceIds: ["EA"] },
+    { claimId: "conflicted-b", status: "SUPPORTED", reason: "The supplied evidence supports the second view.", evidenceIds: ["EB"] },
+  ],
+  preferredResponseLanguage: "en",
+});
+assert.match(conflictedState.views[0].summary, /evidence is conflicted/);
+
 console.log("✓ disagreement special-state tests passed");
