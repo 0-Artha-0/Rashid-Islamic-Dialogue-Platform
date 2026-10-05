@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import readline from "node:readline";
+import path from "node:path";
 
 const defaultInput = "data/raw/dorar/dorar-hadith.jsonl";
 const input = process.argv[2] ?? process.env.DORAR_INPUT ?? (fs.existsSync(defaultInput)
