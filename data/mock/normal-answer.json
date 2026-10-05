@@ -16,14 +16,17 @@
       "text": "نص تجريبي غير مخصص للاستخدام كإجابة دينية حقيقية.",
       "locator": "DEMO-001",
       "relation": "DEFINES",
-      "viewId": null
+      "viewId": null,
+      "language": "ar"
     }
   ],
   "claims": [
     {
       "id": "C001",
       "text": "ادعاء تجريبي لعرض بنية الواجهة.",
-      "evidenceIds": ["E001"],
+      "evidenceIds": [
+        "E001"
+      ],
       "status": "SUPPORTED"
     }
   ],
@@ -42,7 +45,9 @@
     "resolvedPointIds": [],
     "openPointIds": [],
     "disputedPointIds": [],
-    "evidenceUsed": ["E001"]
+    "evidenceUsed": [
+      "E001"
+    ]
   },
   "discussionMap": {
     "nodes": [
@@ -57,7 +62,9 @@
         "label": "النقطة الحالية",
         "kind": "active_point",
         "status": "active",
-        "evidenceIds": ["E001"]
+        "evidenceIds": [
+          "E001"
+        ]
       }
     ],
     "edges": [
@@ -71,5 +78,8 @@
   },
   "disagreement": null,
   "referral": null,
-  "suggestedActions": ["عرض الدليل", "خريطة النقاش"]
+  "suggestedActions": [
+    "عرض الدليل",
+    "خريطة النقاش"
+  ]
 }
