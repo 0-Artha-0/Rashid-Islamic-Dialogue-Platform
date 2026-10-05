@@ -7,6 +7,7 @@ import type { RouterOutput } from "@/lib/schemas/router";
 import type { RetrievalQuery } from "@/lib/schemas/retrieval";
 import type { EvidencePack } from "@/lib/schemas/evidence";
 import type { DialogueState } from "@/lib/schemas/dialogue";
+import type { AtomicClaim, ClaimVerification } from "@/lib/schemas/claims";
 import type { ChatPipelineDependencies } from "./types";
 
 export class ChatServiceError extends Error {
@@ -211,8 +212,8 @@ export async function handleChatRequest(
       return final;
     }
 
-    let claims = [];
-    let verifications = [];
+    let claims: StructuredResponse["claims"] = [];
+    let verifications: ClaimVerification[] = [];
     if (deps.claimGate) {
       const candidateText = evidencePack.evidence.map((item) => item.text).join("\n\n");
       const gate = await deps.claimGate.run(candidateText, evidencePack);
