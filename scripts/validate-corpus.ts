@@ -69,7 +69,9 @@ for (const { value, line } of normalizedRead.rows) {
     if (record.sourceId === "dorar-hadith-local") {
       if (!record.metadata?.originalKey) throw new Error(`missing Dorar originalKey: ${record.recordId}`);
       if (!record.metadata?.grading) throw new Error(`missing Dorar grading: ${record.recordId}`);
-      if (!record.metadata?.provenance?.rawLine) throw new Error(`missing Dorar raw-line provenance: ${record.recordId}`);
+      const metadata = record.metadata as Record<string, unknown> | undefined;
+      const provenance = metadata?.provenance as Record<string, unknown> | undefined;
+      if (!provenance?.rawLine) throw new Error(`missing Dorar raw-line provenance: ${record.recordId}`);
     }
   } catch (error) {
     failures.push({ scope: "normalized", line, error: error instanceof Error ? error.message : String(error) });
