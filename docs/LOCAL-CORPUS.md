@@ -33,6 +33,10 @@ Do not fabricate local records for these categories.
 
 `npx tsx scripts/validate-corpus.ts`
 
+`npx tsx scripts/audit-corpus.ts`
+
+The audit writes `data/tests/corpus-audit.json` with corpus size, languages, source types, source IDs, Dorar grading distribution, and demo-guarantee coverage status.
+
 ## Safety
 
 The local corpus is evidence data, not model-generated religious knowledge. Retrieval code must preserve source metadata and traceability. Final religious claims must still pass the project's evidence/claim gate.
