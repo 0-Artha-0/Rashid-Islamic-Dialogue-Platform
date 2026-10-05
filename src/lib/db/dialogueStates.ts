@@ -12,7 +12,7 @@ export async function saveDialogueState(
   const validated = dialogueStateSchema.parse(state);
   const sql = getDatabaseClient();
 
-  const rows = await sql(
+  const rows = await sql.query(
     `INSERT INTO dialogue_states (conversation_id, state)
      VALUES ($1, $2::jsonb)
      ON CONFLICT (conversation_id)
@@ -28,7 +28,7 @@ export async function getDialogueState(
   conversationId: string,
 ): Promise<DialogueState | null> {
   const sql = getDatabaseClient();
-  const rows = await sql(
+  const rows = await sql.query(
     `SELECT state FROM dialogue_states WHERE conversation_id = $1`,
     [conversationId],
   );
