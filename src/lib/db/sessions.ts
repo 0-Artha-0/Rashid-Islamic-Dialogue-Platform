@@ -28,7 +28,7 @@ export async function createSession(userProfile: UserProfile): Promise<Session> 
   const sql = getDatabaseClient();
   const id = randomUUID();
 
-  const rows = await sql(
+  const rows = await sql.query(
     `INSERT INTO sessions (id, user_profile)
      VALUES ($1, $2::jsonb)
      RETURNING id, user_profile, created_at, updated_at`,
@@ -40,7 +40,7 @@ export async function createSession(userProfile: UserProfile): Promise<Session> 
 
 export async function getSession(id: string): Promise<Session | null> {
   const sql = getDatabaseClient();
-  const rows = await sql(
+  const rows = await sql.query(
     `SELECT id, user_profile, created_at, updated_at
      FROM sessions
      WHERE id = $1`,
@@ -56,7 +56,7 @@ export async function updateSessionProfile(
 ): Promise<Session | null> {
   const profile = userProfileSchema.parse(userProfile);
   const sql = getDatabaseClient();
-  const rows = await sql(
+  const rows = await sql.query(
     `UPDATE sessions
      SET user_profile = $2::jsonb, updated_at = NOW()
      WHERE id = $1
