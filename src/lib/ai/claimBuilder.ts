@@ -5,17 +5,16 @@ import {
   atomicClaimSchema,
   type AtomicClaim,
 } from "@/lib/schemas/claims";
+import type { EvidencePack } from "@/lib/schemas/evidence";
 
-export type ClaimBuilderInput = {
-  candidateText: string;
+export type ClaimBuilderOptions = {
   question?: string;
   context?: string;
-  /**
-   * Candidate evidence scope supplied by the caller.
-   * Claim Builder preserves this scope but does not decide support.
-   * The Gate performs actual evidence-to-claim verification.
-   */
   evidenceIds: string[];
+};
+
+export type ClaimBuilderInput = ClaimBuilderOptions & {
+  candidateText: string;
 };
 
 const claimBuilderJsonSchema = {
@@ -73,6 +72,25 @@ function buildRuntimePrompt(input: ClaimBuilderInput): string {
   ].join("\n");
 }
 
+function normalizeInput(input: ClaimBuilderInput): ClaimBuilderInput {
+  const candidateText = input.candidateText.trim();
+  const evidenceIds = [...new Set(
+    input.evidenceIds.map((id) => id.trim()).filter(Boolean),
+  )];
+
+  if (!candidateText) {
+    throw new Error("Claim Builder requires non-empty candidateText.");
+  }
+
+  if (!evidenceIds.length) {
+    throw new Error(
+      "Claim Builder requires a supplied evidence scope because AtomicClaim requires evidenceIds.",
+    );
+  }
+
+  return { ...input, candidateText, evidenceIds };
+}
+
 function assertClaimBuilderInvariants(
   claims: unknown,
   allowedEvidenceIds: string[],
@@ -114,26 +132,35 @@ function assertClaimBuilderInvariants(
 }
 
 export async function buildClaims(
-  rawInput: ClaimBuilderInput,
-  llm: LlmClient = getLlmClient(),
+  candidateText: string,
+  options: ClaimBuilderOptions,
+  llm?: LlmClient,
+): Promise<AtomicClaim[]>;
+export async function buildClaims(
+  input: ClaimBuilderInput,
+  llm?: LlmClient,
+): Promise<AtomicClaim[]>;
+export async function buildClaims(
+  candidateOrInput: string | ClaimBuilderInput,
+  optionsOrLlm?: ClaimBuilderOptions | LlmClient,
+  injectedLlm?: LlmClient,
 ): Promise<AtomicClaim[]> {
-  const input: ClaimBuilderInput = {
-    ...rawInput,
-    candidateText: rawInput.candidateText.trim(),
-    evidenceIds: [...new Set(rawInput.evidenceIds.map((id) => id.trim()).filter(Boolean))],
-  };
+  const input: ClaimBuilderInput =
+    typeof candidateOrInput === "string"
+      ? {
+          candidateText: candidateOrInput,
+          ...(optionsOrLlm as ClaimBuilderOptions),
+        }
+      : candidateOrInput;
 
-  if (!input.candidateText) {
-    throw new Error("Claim Builder requires non-empty candidateText.");
-  }
+  const llm =
+    typeof candidateOrInput === "string"
+      ? injectedLlm ?? getLlmClient()
+      : (optionsOrLlm as LlmClient | undefined) ?? getLlmClient();
 
-  if (!input.evidenceIds.length) {
-    throw new Error(
-      "Claim Builder requires a supplied evidence scope because AtomicClaim requires evidenceIds.",
-    );
-  }
+  const normalized = normalizeInput(input);
 
-  const raw = await llm.generate(buildRuntimePrompt(input), {
+  const raw = await llm.generate(buildRuntimePrompt(normalized), {
     systemInstruction: loadPrompt(),
     responseMimeType: "application/json",
     responseJsonSchema: claimBuilderJsonSchema,
@@ -158,12 +185,34 @@ export async function buildClaims(
 
   const claims = assertClaimBuilderInvariants(
     (json as { claims: unknown[] }).claims,
-    input.evidenceIds,
+    normalized.evidenceIds,
   );
 
   console.info(
-    `Claim Builder: candidateChars=${input.candidateText.length}, claims=${claims.length}`,
+    `Claim Builder: candidateChars=${normalized.candidateText.length}, claims=${claims.length}`,
   );
 
   return claims;
+}
+
+/**
+ * Backward-compatible entry point for the existing Track H stub.
+ * If no separate candidate text is supplied, the EvidencePack text is treated
+ * as candidate DATA only. No support judgment is made here; the Gate still owns it.
+ */
+export async function buildAtomicClaims(
+  pack: EvidencePack,
+  candidateText?: string,
+  llm?: LlmClient,
+): Promise<AtomicClaim[]> {
+  const evidencePack = pack;
+  const candidate = candidateText?.trim() || evidencePack.evidence.map((item) => item.text).join("\n");
+  return buildClaims(
+    candidate,
+    {
+      question: evidencePack.question,
+      evidenceIds: evidencePack.evidence.map((item) => item.id),
+    },
+    llm,
+  );
 }
