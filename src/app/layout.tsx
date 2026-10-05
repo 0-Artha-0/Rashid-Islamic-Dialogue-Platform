@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Alexandria } from "next/font/google";
 import "./globals.css";
+import { LocaleProvider } from "@/components/i18n/LocaleProvider";
 
 const alexandria = Alexandria({
   subsets: ["arabic", "latin"],
@@ -21,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={alexandria.variable}>{children}</body>
+      <body className={alexandria.variable}><LocaleProvider>{children}</LocaleProvider></body>
     </html>
   );
 }
