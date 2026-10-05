@@ -4,6 +4,7 @@ import { buildEvidencePack } from "../src/lib/rag/evidencePack";
 import { buildDiscussionMap } from "../src/lib/dialogue/buildDiscussionMap";
 import { buildEvidenceGraph } from "../src/lib/dialogue/buildEvidenceGraph";
 import { structuredResponseSchema } from "../src/lib/schemas/response";
+import { defaultChatDependencies } from "../src/lib/chat/defaultDependencies";
 import type { ChatPipelineDependencies } from "../src/lib/chat/types";
 import type { DialogueState } from "../src/lib/schemas/dialogue";
 
@@ -275,6 +276,10 @@ async function testClaimGateBoundaryAndResponseContract() {
   assert.match(result.message, /claim-evidence/i);
 }
 
+async function testProductionClaimGateWiring() {
+  assert.equal(typeof defaultChatDependencies.claimGate?.run, "function");
+}
+
 async function testTechnicalFailureIsSafe() {
   const harness = makeDeps({
     retrieveEvidence: async () => {
@@ -303,6 +308,7 @@ async function main() {
   await testReferral();
   await testInsufficientEvidence();
   await testClaimGateBoundaryAndResponseContract();
+  await testProductionClaimGateWiring();
   await testTechnicalFailureIsSafe();
   console.log("✓ chat API/session orchestration tests passed");
 }
