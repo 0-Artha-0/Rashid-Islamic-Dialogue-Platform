@@ -21,7 +21,8 @@ function bump(map: Map<string, number>, key: string) {
   map.set(key, (map.get(key) ?? 0) + 1);
 }
 
-if (!input) throw new Error("No Dorar JSONL found in data/raw/dorar.");\nif (!fs.existsSync(input)) throw new Error("Input not found: " + input);
+if (!input) throw new Error("No Dorar JSONL found in data/raw/dorar.");
+if (!fs.existsSync(input)) throw new Error("Input not found: " + input);
 
 const rl = readline.createInterface({
   input: fs.createReadStream(input, { encoding: "utf8" }),
