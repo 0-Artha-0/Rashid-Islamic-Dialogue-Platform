@@ -7,6 +7,7 @@ const registryPath = "data/source-registry.json";
 const normalizedPath = "data/normalized/dorar-hadith.jsonl";
 const processedPath = "data/processed/dorar-hadith-chunks.jsonl";
 const demoPath = "data/tests/demo-guarantee-set.json";
+const inspectionPath = "data/tests/dorar-inspection.json";
 const outputPath = "data/tests/corpus-audit.json";
 
 function readJson(path: string): any {
@@ -34,8 +35,12 @@ function counts(rows: JsonRecord[], field: string) {
 }
 
 const registry = readJson(registryPath) as JsonRecord[];
+if (!fs.existsSync(normalizedPath) || !fs.existsSync(processedPath)) {
+  throw new Error("Corpus build outputs are missing. Run build:corpus before audit:corpus.");
+}
 const normalized = await readJsonl(normalizedPath);
 const chunks = await readJsonl(processedPath);
+const inspection = fs.existsSync(inspectionPath) ? readJson(inspectionPath) : null;
 const dorar = normalized.filter(row => row.sourceId === "dorar-hadith-local");
 
 const gradingRows = dorar.map(row => ({ grading: row.metadata?.grading ?? "missing" }));
@@ -74,7 +79,8 @@ const audit = {
   dorar: {
     normalizedRecords: dorar.length,
     grading: dorarGrading,
-    expectedFromRegistry: registry.find(s => s.sourceId === "dorar-hadith-local")?.recordCount ?? null
+    expectedFromRegistry: registry.find(s => s.sourceId === "dorar-hadith-local")?.recordCount ?? null,
+    inspection
   },
   demoCoverage
 };
