@@ -55,6 +55,8 @@ async function main() {
     "https://example.invalid/quran/1"
   );
 
+  mcpDuplicate.sourceId = localCandidate.sourceId;
+
   const mcpDistinct = candidate(
     "MCP-HADITH",
     "hadith",
