@@ -11,7 +11,8 @@
       "text": "نص تجريبي للتحقق من العقد فقط.",
       "locator": "DEMO-001",
       "relation": "DEFINES",
-      "viewId": null
+      "viewId": null,
+      "language": "ar"
     }
   ]
 }
