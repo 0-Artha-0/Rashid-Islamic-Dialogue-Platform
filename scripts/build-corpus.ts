@@ -4,7 +4,13 @@ import readline from "node:readline";
 import path from "node:path";
 import { baseSourceRecordSchema, chunkRecordSchema } from "../src/lib/schemas/corpus";
 
-const rawPath = process.env.DORAR_INPUT ?? "data/raw/dorar/dorar-hadith.jsonl";
+const defaultRawPath = "data/raw/dorar/dorar-hadith.jsonl";
+const rawPath = process.env.DORAR_INPUT ?? (fs.existsSync(defaultRawPath)
+  ? defaultRawPath
+  : fs.readdirSync("data/raw/dorar", { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".jsonl"))
+      .map((entry) => path.join("data/raw/dorar", entry.name))
+      .sort()[0]);
 const normalizedPath = "data/normalized/dorar-hadith.jsonl";
 const processedPath = "data/processed/dorar-hadith-chunks.jsonl";
 const inspectionPath = "data/tests/dorar-inspection.json";
