@@ -268,19 +268,32 @@ function inferType(
     ]) ?? ""
   ).toLowerCase();
 
-  if (raw.includes("quran") || raw.includes("قرآن")) return "quran";
-  if (raw.includes("hadith") || raw.includes("حديث")) return "hadith";
-  if (raw.includes("tafsir") || raw.includes("تفسير")) return "tafsir";
-  if (raw.includes("term") || raw.includes("مصطلح")) return "terminology";
+  const origin = (
+    stringField(object, [
+      "url",
+      "sourceUrl",
+      "link",
+      "locator",
+      "reference",
+      "path"
+    ]) ?? ""
+  ).toLowerCase();
+
+  const sourceHint = raw || origin;
+
+  if (sourceHint.includes("quran") || sourceHint.includes("قرآن") || sourceHint.includes("islamenc.com/en/quran/")) return "quran";
+  if (sourceHint.includes("hadith") || sourceHint.includes("حديث") || sourceHint.includes("hadeethenc.com/")) return "hadith";
+  if (sourceHint.includes("tafsir") || sourceHint.includes("تفسير")) return "tafsir";
+  if (sourceHint.includes("term") || sourceHint.includes("مصطلح") || sourceHint.includes("terminology")) return "terminology";
   if (
-    raw.includes("misconception") ||
-    raw.includes("question") ||
-    raw.includes("سؤال")
+    sourceHint.includes("misconception") ||
+    sourceHint.includes("question") ||
+    sourceHint.includes("سؤال")
   ) {
     return "misconception";
   }
-  if (raw.includes("fiqh") || raw.includes("فقه")) return "fiqh";
-  if (raw.includes("seerah") || raw.includes("سيرة")) return "seerah";
+  if (sourceHint.includes("fiqh") || sourceHint.includes("فقه")) return "fiqh";
+  if (sourceHint.includes("seerah") || sourceHint.includes("سيرة")) return "seerah";
 
   return "other_approved";
 }
@@ -350,7 +363,10 @@ function normalize(
     "snippet"
   ]);
 
-  const url = stringField(object, ["url", "sourceUrl", "link"]);
+  const url =
+    stringField(object, ["url", "sourceUrl", "link"]) ??
+    stringField(object, ["locator", "reference", "path"]) ??
+    undefined;
   const locator =
     stringField(object, ["locator", "reference", "path", "id", "key"]) ?? url;
 
