@@ -8,6 +8,8 @@ import { buildEvidencePack } from "@/lib/rag/evidencePack";
 import { updateDialogueState } from "@/lib/dialogue/updateState";
 import { buildDiscussionMap } from "@/lib/dialogue/buildDiscussionMap";
 import { buildEvidenceGraph } from "@/lib/dialogue/buildEvidenceGraph";
+import { buildClaims } from "@/lib/ai/claimBuilder";
+import { verifyClaims } from "@/lib/ai/claimEvidenceGate";
 import type { ChatPipelineDependencies } from "./types";
 
 export const defaultChatDependencies: ChatPipelineDependencies = {
@@ -22,4 +24,14 @@ export const defaultChatDependencies: ChatPipelineDependencies = {
   updateDialogueState,
   buildDiscussionMap,
   buildEvidenceGraph,
+  claimGate: {
+    async run(candidateText, evidencePack) {
+      const claims = await buildClaims(candidateText, {
+        question: evidencePack.question,
+        evidenceIds: evidencePack.evidence.map((item) => item.id),
+      });
+      const verifications = await verifyClaims({ claims, evidencePack });
+      return { claims, verifications };
+    },
+  },
 };
