@@ -1,4 +1,3 @@
-import "server-only";
 import { randomUUID } from "node:crypto";
 import { getDatabaseClient } from "./client";
 import { sessionSchema, type Session } from "@/lib/schemas/session";
