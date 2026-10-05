@@ -5,12 +5,13 @@ import path from "node:path";
 import { baseSourceRecordSchema, chunkRecordSchema } from "../src/lib/schemas/corpus";
 
 const defaultRawPath = "data/raw/dorar/dorar-hadith.jsonl";
-const rawPath = process.env.DORAR_INPUT ?? (fs.existsSync(defaultRawPath)
-  ? defaultRawPath
-  : fs.readdirSync("data/raw/dorar", { withFileTypes: true })
+const discoveredRawPath = fs.existsSync("data/raw/dorar")
+  ? fs.readdirSync("data/raw/dorar", { withFileTypes: true })
       .filter((entry) => entry.isFile() && entry.name.endsWith(".jsonl"))
       .map((entry) => path.join("data/raw/dorar", entry.name))
-      .sort()[0]);
+      .sort()[0]
+  : undefined;
+const rawPath = process.env.DORAR_INPUT ?? (fs.existsSync(defaultRawPath) ? defaultRawPath : discoveredRawPath);
 const normalizedPath = "data/normalized/dorar-hadith.jsonl";
 const processedPath = "data/processed/dorar-hadith-chunks.jsonl";
 const inspectionPath = "data/tests/dorar-inspection.json";
@@ -30,8 +31,11 @@ function stableId(prefix: string, value: string) {
   return `${prefix}-${crypto.createHash("sha256").update(value, "utf8").digest("hex").slice(0, 24)}`;
 }
 
+if (!rawPath) {
+  throw new Error("No Dorar JSONL found in data/raw/dorar. Set DORAR_INPUT or add a .jsonl file.");
+}
 if (!fs.existsSync(rawPath)) {
-  throw new Error(`Raw Dorar dataset not found at ${rawPath}. Copy the supplied JSONL there unchanged.`);
+  throw new Error(`Raw Dorar dataset not found at ${rawPath}.`);
 }
 for (const file of [normalizedPath, processedPath, inspectionPath, errorPath]) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
