@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { idSchema, languageSchema } from "./common";
+import { contentLanguageSchema, idSchema } from "./common";
 import { contentLevelSchema, routeSchema } from "./router";
 import { sourceTypeSchema } from "./corpus";
 
@@ -7,7 +7,9 @@ export const retrievalQuerySchema = z.object({
   query: z.string().min(1),
   route: routeSchema,
   contentLevel: contentLevelSchema,
-  language: languageSchema,
+  queryLanguage: contentLanguageSchema,
+  preferredResponseLanguage: contentLanguageSchema,
+  preferredSourceLanguages: z.array(contentLanguageSchema).default([]),
   conceptIds: z.array(idSchema).default([]),
   sourceTypes: z.array(sourceTypeSchema).default([]),
   topK: z.number().int().positive().max(50).default(8),
@@ -21,6 +23,7 @@ export const evidenceCandidateSchema = z.object({
   sourceType: sourceTypeSchema,
   sourceName: z.string().min(1),
   text: z.string().min(1),
+  language: contentLanguageSchema,
   locator: z.string().min(1),
   url: z.string().url().optional(),
   score: z.number(),

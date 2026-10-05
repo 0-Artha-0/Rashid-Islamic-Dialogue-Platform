@@ -16,7 +16,10 @@
     "disputedPointIds": [],
     "evidenceUsed": []
   },
-  "discussionMap": { "nodes": [], "edges": [] },
+  "discussionMap": {
+    "nodes": [],
+    "edges": []
+  },
   "disagreement": null,
   "referral": null,
   "suggestedActions": []

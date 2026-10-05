@@ -1,4 +1,5 @@
 {
+  "queryLanguage": "ar",
   "contentLevel": "B",
   "route": "EXPLAIN",
   "ambiguous": false,

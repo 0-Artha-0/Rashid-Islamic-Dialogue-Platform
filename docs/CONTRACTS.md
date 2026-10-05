@@ -61,3 +61,14 @@ After this freeze, changing a shared contract requires updating:
 5. the Pull Request description.
 
 Do not silently rename or remove fields used by another module.
+
+## Multilingual contract amendment v1.1
+
+UI language is separate from content language.
+
+- `uiLanguage`: currently `ar | en`.
+- `preferredResponseLanguage`: BCP-47-style language tag.
+- corpus `language`: BCP-47-style language tag.
+- Retrieval separates `queryLanguage`, `preferredResponseLanguage`, and `preferredSourceLanguages`.
+
+This amendment preserves the existing architecture while allowing multilingual questions and approved multilingual sources.

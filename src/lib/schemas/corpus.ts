@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { idSchema, languageSchema } from "./common";
+import { contentLanguageSchema, idSchema } from "./common";
 
 export const sourceTypeSchema = z.enum([
   "quran",
@@ -20,7 +20,7 @@ export const baseSourceRecordSchema = z.object({
   sourceType: sourceTypeSchema,
   title: z.string().nullable().default(null),
   text: z.string().min(1),
-  language: languageSchema,
+  language: contentLanguageSchema,
   locator: z.string().min(1),
   url: z.string().url().optional(),
   conceptIds: z.array(idSchema).default([]),
@@ -33,7 +33,7 @@ export const chunkRecordSchema = z.object({
   sourceId: idSchema,
   sourceType: sourceTypeSchema,
   text: z.string().min(1),
-  language: languageSchema,
+  language: contentLanguageSchema,
   locator: z.string().min(1),
   url: z.string().url().optional(),
   conceptIds: z.array(idSchema).default([]),
