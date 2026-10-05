@@ -53,7 +53,7 @@ This is intentionally transparent; no vector database or opaque reranker is used
 Connectors run with `Promise.allSettled`; a failing connector cannot fabricate or block valid results from another approved connector. Malformed external results are rejected by Zod. Empty results stay empty.
 
 ## Testing
-`npm run test:retrieval` uses `data/mock/retrieval-chunks.json`, explicitly **TEST FIXTURE ONLY**, and disables live MCP for deterministic tests. It covers terminology, Quran, hadith, explanatory, multilingual, and no-evidence queries and validates EvidencePack construction.
+`npm run test:retrieval` uses `data/mock/retrieval-chunks.json`, explicitly **TEST FIXTURE ONLY**, and disables live MCP for deterministic tests. It covers terminology, Quran, hadith, explanatory, multilingual, and no-evidence queries and validates EvidencePack construction. The expected retrieval cases are also recorded in `data/tests/retrieval-questions.json`. `npm run test:retrieval-hitk` records Retrieval Hit@5 against those expected cases as a diagnostic metric.
 
 A live MCP smoke test is implemented in `scripts/test-mcp.ts` and has been verified from a developer machine against the official endpoint. The test confirms the documented `search` tool is callable and that returned evidence preserves text plus a source locator. `scripts/test-hybrid-retrieval.ts` also verifies dispatcher selection, deduplication, ranking, MCP failure fallback, and EvidencePack provenance.
 
