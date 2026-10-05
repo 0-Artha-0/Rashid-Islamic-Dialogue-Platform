@@ -63,50 +63,25 @@ function prompt(): string {
   );
 }
 
-function validateInvariants(
+function normalizeAndValidateState(
   state: DialogueState,
   allowedEvidenceIds: string[],
 ): DialogueState {
-  const pointById = new Map(state.points.map((point) => [point.id, point]));
   const ids = state.points.map((point) => point.id);
   if (new Set(ids).size !== ids.length) {
     throw new Error("DialogueState contains duplicate point IDs.");
   }
 
-  const activePoints = state.points.filter((point) => point.status === "active");
-  if (activePoints.length > 1) {
-    throw new Error("DialogueState may contain at most one active point.");
-  }
-  if (activePoints.length === 1 && state.activePointId !== activePoints[0].id) {
-    throw new Error("activePointId must reference the single active point.");
-  }
-  if (activePoints.length === 0 && state.activePointId !== null) {
-    throw new Error("activePointId must be null when no point is active.");
-  }
-
+  const pointById = new Map(state.points.map((point) => [point.id, point]));
   for (const point of state.points) {
     if (point.parentId && !pointById.has(point.parentId)) {
       throw new Error(`Dialogue point ${point.id} references an unknown parent.`);
     }
   }
 
-  const expected = {
-    resolved: new Set(state.points.filter((p) => p.status === "resolved").map((p) => p.id)),
-    open: new Set(state.points.filter((p) => p.status === "open").map((p) => p.id)),
-    disputed: new Set(state.points.filter((p) => p.status === "disputed").map((p) => p.id)),
-  };
-
-  const sameSet = (a: string[], b: Set<string>) =>
-    a.length === b.size && a.every((value) => b.has(value));
-
-  if (!sameSet(state.resolvedPointIds, expected.resolved)) {
-    throw new Error("resolvedPointIds do not match resolved points.");
-  }
-  if (!sameSet(state.openPointIds, expected.open)) {
-    throw new Error("openPointIds do not match open points.");
-  }
-  if (!sameSet(state.disputedPointIds, expected.disputed)) {
-    throw new Error("disputedPointIds do not match disputed points.");
+  const activePoints = state.points.filter((point) => point.status === "active");
+  if (activePoints.length > 1) {
+    throw new Error("DialogueState may contain at most one active point.");
   }
 
   const allowed = new Set(allowedEvidenceIds);
@@ -114,7 +89,24 @@ function validateInvariants(
     throw new Error("DialogueState invented an evidence ID.");
   }
 
-  return state;
+  // These fields are derived from point statuses. Recompute them instead of
+  // failing a valid semantic state because the LLM duplicated bookkeeping badly.
+  const normalized: DialogueState = {
+    ...state,
+    activePointId: activePoints[0]?.id ?? null,
+    resolvedPointIds: state.points
+      .filter((point) => point.status === "resolved")
+      .map((point) => point.id),
+    openPointIds: state.points
+      .filter((point) => point.status === "open")
+      .map((point) => point.id),
+    disputedPointIds: state.points
+      .filter((point) => point.status === "disputed")
+      .map((point) => point.id),
+    evidenceUsed: [...new Set(state.evidenceUsed)],
+  };
+
+  return dialogueStateSchema.parse(normalized);
 }
 
 export async function updateDialogueState(
@@ -150,5 +142,5 @@ export async function updateDialogueState(
     throw new Error("LLM returned invalid JSON for DialogueState.");
   }
 
-  return validateInvariants(dialogueStateSchema.parse(json), evidenceIdsUsed);
+  return normalizeAndValidateState(dialogueStateSchema.parse(json), evidenceIdsUsed);
 }
