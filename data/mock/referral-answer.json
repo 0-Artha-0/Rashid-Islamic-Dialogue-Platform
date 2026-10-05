@@ -16,7 +16,10 @@
     "disputedPointIds": [],
     "evidenceUsed": []
   },
-  "discussionMap": { "nodes": [], "edges": [] },
+  "discussionMap": {
+    "nodes": [],
+    "edges": []
+  },
   "disagreement": null,
   "referral": {
     "reason": "personal_fatwa",
@@ -24,5 +27,7 @@
     "safeGeneralInformation": "يمكن عرض معلومات عامة فقط.",
     "specialistType": "عالم أو جهة شرعية مؤهلة"
   },
-  "suggestedActions": ["عرض معلومات عامة"]
+  "suggestedActions": [
+    "عرض معلومات عامة"
+  ]
 }
