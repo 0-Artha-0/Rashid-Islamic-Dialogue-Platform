@@ -212,9 +212,11 @@ export async function handleChatRequest(
     }
 
     let claims = [];
+    let verifications = [];
     if (deps.claimGate) {
       const candidateText = evidencePack.evidence.map((item) => item.text).join("\n\n");
       const gate = await deps.claimGate.run(candidateText, evidencePack);
+      verifications = gate.verifications;
       claims = gate.claims.map((claim) => {
         const verification = gate.verifications.find((item) => item.claimId === claim.id);
         return { ...claim, status: verification?.status ?? claim.status };
@@ -238,7 +240,7 @@ export async function handleChatRequest(
     deps.buildEvidenceGraph({
       claims,
       evidence: evidencePack.evidence,
-      verifications: [],
+      verifications,
     });
 
     const evidenceIds = evidencePack.evidence.map((item) => item.id);
