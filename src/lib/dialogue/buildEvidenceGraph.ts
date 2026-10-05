@@ -34,12 +34,13 @@ export function buildEvidenceGraph({
     })),
   ];
 
-  const sourceIds = new Set<string>();
+  const sourceNodeIdBySourceId = new Map<string, string>();
   for (const item of evidence) {
-    if (!sourceIds.has(item.sourceId)) {
-      sourceIds.add(item.sourceId);
+    if (!sourceNodeIdBySourceId.has(item.sourceId)) {
+      const sourceNodeId = `source-node-${item.sourceId}`;
+      sourceNodeIdBySourceId.set(item.sourceId, sourceNodeId);
       nodes.push({
-        id: item.sourceId,
+        id: sourceNodeId,
         type: "source",
         label: item.sourceName,
       });
@@ -78,7 +79,7 @@ export function buildEvidenceGraph({
     edges.push({
       id: `evidence-source-${item.id}`,
       from: item.id,
-      to: item.sourceId,
+      to: sourceNodeIdBySourceId.get(item.sourceId)!,
       type: "CITED_FROM",
     });
   }
