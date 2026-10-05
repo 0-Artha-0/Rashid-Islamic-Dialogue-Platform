@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "validate:mocks": "tsx scripts/validate-mocks.ts",
-    "test:db": "tsx --env-file=.env.local scripts/test-db.ts"
+    "test:db": "tsx --env-file=.env.local scripts/test-db.ts",
+    "test:router": "tsx --env-file=.env.local scripts/test-router.ts"
   },
   "dependencies": {
     "@google/genai": "2.24.0",
