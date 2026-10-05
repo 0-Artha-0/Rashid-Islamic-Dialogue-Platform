@@ -29,7 +29,7 @@ export class LocalCorpusConnector implements RetrievalConnector {
   constructor(private readonly options: LocalConnectorOptions = {}) {}
 
   async search(query: RetrievalQuery): Promise<EvidenceCandidate[]> {
-    const filePath = this.options.path ?? process.env.RASHID_LOCAL_CORPUS_PATH ?? path.join(process.cwd(), "data/processed/chunks.jsonl");
+    const filePath = this.options.path ?? process.env.RASHID_LOCAL_CORPUS_PATH ?? path.join(process.cwd(), "data/processed/dorar-hadith-chunks.jsonl");
     const chunks = this.options.chunks ?? loadChunks(filePath);
     const eligible = chunks.filter((chunk) => query.sourceTypes.length === 0 || query.sourceTypes.includes(chunk.sourceType));
     const scores = keywordSearch(query.query, eligible.map((chunk) => chunk.text));

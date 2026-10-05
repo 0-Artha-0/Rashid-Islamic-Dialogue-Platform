@@ -15,7 +15,8 @@
     "test:retrieval-hitk": "tsx scripts/test-retrieval-hitk.ts",
     "test:dialogue": "tsx --env-file=.env.local scripts/test-dialogue.ts",
     "test:claims": "tsx scripts/test-claims.ts",
-    "test:evidence-gate": "tsx scripts/test-evidence-gate.ts"
+    "test:evidence-gate": "tsx scripts/test-evidence-gate.ts",
+    "test:chat-api": "tsx scripts/test-chat-api.ts"
   },
   "dependencies": {
     "@google/genai": "2.24.0",
