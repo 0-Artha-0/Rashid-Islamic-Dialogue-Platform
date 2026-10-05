@@ -101,6 +101,6 @@ const conflictedState = buildDisagreementState({
   ],
   preferredResponseLanguage: "en",
 });
-assert.match(conflictedState.views[0].summary, /evidence is conflicted/);
+assert.match(conflictedState.views[0].summary, /evidence is conflicted/);\nassert.deepEqual(conflictedState.agreementPoints, []);\nassert.match(conflictedState.disputedPoint, /contested/);
 
 console.log("✓ disagreement special-state tests passed");
