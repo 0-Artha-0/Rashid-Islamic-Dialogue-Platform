@@ -89,9 +89,10 @@ export function validateWrittenAnswer(input: WriteAnswerInput, value: unknown): 
 export function renderWrittenAnswer(answer: WrittenAnswer): string {
   return answer.paragraphs.map(p => [p.text, p.qualification].filter(Boolean).join("\n")).join("\n\n");
 }
-export async function writeAnswer(input: WriteAnswerInput, llm?: LlmClient): Promise<WrittenAnswer> {
+export async function writeAnswer(input: WriteAnswerInput, llm?: LlmClient, correction?: string): Promise<WrittenAnswer> {
   const context = writerContext(input);
-  const raw = await (llm ?? getLlmClient()).generate(JSON.stringify(context), {
+  const payload = correction ? { ...context, correction } : context;
+  const raw = await (llm ?? getLlmClient()).generate(JSON.stringify(payload), {
     systemInstruction: fs.readFileSync(path.join(process.cwd(), "src/prompts/writer.md"), "utf8"),
     responseMimeType: "application/json", responseJsonSchema: writtenAnswerJsonSchema, temperature: 0,
   });
