@@ -25,13 +25,25 @@ export class ApprovedWebConnector implements RetrievalConnector{
    config:{tools:[{googleSearch:{}}],temperature:0}
   });
   const chunks:any[]=response?.candidates?.[0]?.groundingMetadata?.groundingChunks??[];
-  const urls=[...new Set(chunks.map(c=>c?.web?.uri).filter((u:any):u is string=>typeof u==="string"&&allowed(u)))].slice(0,Math.max(query.topK,4));
+  // Gemini grounding URIs are commonly Google/Vertex redirect URLs rather than
+  // the publisher URL. Do not reject them before following the redirect.
+  const refs=[...new Map(chunks
+    .map((c:any)=>({uri:c?.web?.uri,title:String(c?.web?.title??"").trim()}))
+    .filter((x:any)=>typeof x.uri==="string"&&x.uri)
+    .map((x:any)=>[x.uri,x])).values()].slice(0,Math.max(query.topK,4));
   const out:EvidenceCandidate[]=[];
-  for(const url of urls){
+  for(const ref of refs){
    try{
-    const res=await fetch(url,{headers:{"user-agent":"Rashid-Hackathon/1.0"},signal:AbortSignal.timeout(8000)});
-    if(!res.ok)continue;const text=cleanHtml(await res.text());if(text.length<80)continue;
-    const id=`web-${hash(url)}`;out.push({id,chunkId:id,recordId:id,sourceId:"approved-web",sourceType:typeFor(url),sourceName:new URL(url).hostname,text,language:query.queryLanguage,locator:url,url,score:0.55,retrievalMethod:"semantic",conceptIds:[]});
+    // A publisher-domain title is a useful pre-filter, but the final redirected
+    // URL is the security boundary. fetch() follows redirects by default.
+    const titleLooksApproved = domains().some(d=>ref.title===d||ref.title.endsWith("."+d)||ref.title.includes(d));
+    if(!titleLooksApproved && allowed(ref.uri)===false && !ref.uri.includes("vertexaisearch.cloud.google.com")) continue;
+    const res=await fetch(ref.uri,{headers:{"user-agent":"Mozilla/5.0 Rashid-Hackathon/1.0"},redirect:"follow",signal:AbortSignal.timeout(10000)});
+    if(!res.ok)continue;
+    const finalUrl=res.url||ref.uri;
+    if(!allowed(finalUrl))continue;
+    const text=cleanHtml(await res.text());if(text.length<80)continue;
+    const id=`web-${hash(finalUrl)}`;out.push({id,chunkId:id,recordId:id,sourceId:"approved-web",sourceType:typeFor(finalUrl),sourceName:new URL(finalUrl).hostname,text,language:query.queryLanguage,locator:finalUrl,url:finalUrl,score:0.68,retrievalMethod:"semantic",conceptIds:query.conceptIds});
    }catch{}
   }
   return out;
