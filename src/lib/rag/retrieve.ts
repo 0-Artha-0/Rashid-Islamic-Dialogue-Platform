@@ -2,6 +2,9 @@ import { evidenceCandidateSchema, retrievalQuerySchema, type EvidenceCandidate, 
 import { createIslamicContentMcpConnector } from "@/lib/rag/connectors/islamicContentMcp";
 import { createLocalCorpusConnector } from "@/lib/rag/connectors/local";
 import { createApprovedWebConnector } from "@/lib/rag/connectors/approvedWeb";
+import { createQuranEncConnector } from "@/lib/rag/connectors/quranEnc";
+import { createHadeethEncConnector } from "@/lib/rag/connectors/hadeethEnc";
+import { createDorarHadithApiConnector } from "@/lib/rag/connectors/dorarHadith";
 import { deduplicateCandidates } from "@/lib/rag/deduplicate";
 import { selectConnectors } from "@/lib/rag/dispatch";
 import { isPrimaryEvidenceEligible, rankCandidates } from "@/lib/rag/rank";
@@ -18,8 +21,14 @@ export async function retrieveEvidenceDetailed(input: RetrievalQuery, options: {
   const local = options.connectors?.find((c) => c.name === "local") ?? createLocalCorpusConnector();
   const mcp = options.connectors?.find((c) => c.name === "islamic-content-mcp") ?? createIslamicContentMcpConnector();
   const web = options.connectors?.find((c) => c.name === "approved-web") ?? createApprovedWebConnector();
+  const quranApi = options.connectors?.find((c) => c.name === "quranenc-api") ?? createQuranEncConnector();
+  const hadithApi = options.connectors?.find((c) => c.name === "hadeethenc-api") ?? createHadeethEncConnector();
+  const dorarApi = options.connectors?.find((c) => c.name === "dorar-hadith-api") ?? createDorarHadithApiConnector();
   const plan = planRetrieval(query);
   const selected = selectConnectors(query, { local, mcp, web });
+  const plannedTypes = new Set(plan.flatMap((item) => item.sourceTypes));
+  if (plannedTypes.has("quran")) selected.unshift(quranApi);
+  if (plannedTypes.has("hadith")) selected.unshift(hadithApi, dorarApi);
   const resultsByConnector: Record<string, number> = {};
   const all: EvidenceCandidate[] = [];
   // Execute each knowledge need as its own retrieval task. This prevents one
