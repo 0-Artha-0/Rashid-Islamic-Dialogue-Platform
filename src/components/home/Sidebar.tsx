@@ -44,7 +44,7 @@ const defaultNavItems: NavItem[] = [
 export interface SidebarProps {
   navItems?: NavItem[];
   activeId?: string;
-  onNavigate?: (id: string) => void;
+  onNavigate?: (id: string) => boolean | void;
   className?: string;
 }
 
@@ -63,7 +63,8 @@ export function Sidebar({
   };
 
   const handleNavigate = (id: string) => {
-    onNavigate?.(id);
+    const handled = onNavigate?.(id);
+    if (handled === true) return;
 
     if (id === "home") {
       router.push("/");
