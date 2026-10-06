@@ -10,8 +10,10 @@ function hadithFitness(candidate: EvidenceCandidate): number {
   if (candidate.sourceType !== "hadith") return 0;
   const grade = normalizedGrade(candidate);
   if (!grade) return -0.12;
-  if (/صحيح|حسن|sahih|hasan|authentic|sound/.test(grade)) return 0.18;
-  if (/ضعيف|غريب|موضوع|باطل|منكر|لا يصح|weak|fabricated|mawdu/.test(grade)) return -1.25;
+  // Negative rulings must win before positive substrings such as "صحيح" inside
+  // phrases like "لم يصح" or mixed critical grading notes.
+  if (/ضعيف|ضعفوه|ضعفه|سقيم|غريب|موضوع|باطل|منكر|لا يصح|لم يصح|غير محفوظ|اضطراب|موقوف|مرسل|ليس بالقوي|ليس بقوي|weak|fabricated|mawdu/.test(grade)) return -1.25;
+  if (/صحيح|حسن|إسناده قوي|sahih|hasan|authentic|sound/.test(grade)) return 0.18;
   return -0.08;
 }
 
