@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Sidebar } from "@/components/home/Sidebar";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import type { StructuredResponse } from "@/lib/schemas/response";
@@ -132,9 +132,84 @@ function MapMini({ response }: { response: StructuredResponse }) {
   );
 }
 
-export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
+
+function EvidenceGraphCanvas({ turns }: { turns: DialogueTurn[] }) {
   const { locale } = useLocale();
-  const [drawer, setDrawer] = useState<"sources" | "map" | null>(null);
+  const responses = turns.map((turn) => turn.response).filter((item): item is StructuredResponse => Boolean(item));
+  const claims = responses.flatMap((response) => response.claims);
+  const evidenceMap = new Map<string, EvidenceItem>();
+  for (const response of responses) for (const evidence of response.citations) evidenceMap.set(evidence.id, evidence);
+  const evidence = [...evidenceMap.values()];
+
+  const claimX = (index: number) => 220 + (index % 3) * 230;
+  const claimY = (index: number) => 210 + Math.floor(index / 3) * 145;
+  const evidenceX = (index: number) => 120 + (index % 4) * 190;
+  const evidenceY = (index: number) => 470 + Math.floor(index / 4) * 120;
+
+  return (
+    <div className="space-y-3">
+      <p className="text-[10px] leading-5 text-[#71877c]">
+        {locale === "ar" ? "اسحب أفقياً أو عمودياً لاستكشاف علاقة الادعاءات بالأدلة." : "Scroll around to explore how claims connect to evidence."}
+      </p>
+      <div className="overflow-auto rounded-[16px] border border-[#d8bd91] bg-[#fffdf8] shadow-inner">
+        <div className="relative h-[760px] w-[920px]">
+          <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
+            {claims.flatMap((claim, ci) =>
+              claim.evidenceIds.map((evidenceId) => {
+                const ei = evidence.findIndex((item) => item.id === evidenceId);
+                if (ei < 0) return null;
+                return (
+                  <line
+                    key={`${claim.id}-${evidenceId}`}
+                    x1={claimX(ci) + 85}
+                    y1={claimY(ci) + 45}
+                    x2={evidenceX(ei) + 75}
+                    y2={evidenceY(ei)}
+                    stroke="#c8aa73"
+                    strokeWidth="1.5"
+                    strokeDasharray="5 4"
+                  />
+                );
+              }),
+            )}
+          </svg>
+
+          <div className="absolute left-[350px] top-8 w-[220px] rounded-[18px] border-2 border-[#365f4f] bg-[#365f4f] px-4 py-3 text-center text-white shadow">
+            <p className="text-[9px] opacity-75">{locale === "ar" ? "سياق الحوار" : "Dialogue context"}</p>
+            <p className="mt-1 text-[12px] font-bold leading-5">{turns[0]?.question ?? ""}</p>
+          </div>
+
+          {claims.map((claim, index) => (
+            <div
+              key={claim.id}
+              className="absolute w-[170px] rounded-[14px] border border-[#d6a092] bg-[#fff0ec] px-3 py-3 text-center shadow-sm"
+              style={{ left: claimX(index), top: claimY(index) }}
+            >
+              <p className="text-[9px] font-semibold text-[#a06f63]">{locale === "ar" ? "ادعاء موثّق" : "Verified claim"}</p>
+              <p className="mt-1 text-[10px] leading-5 text-[#365f4f]">{claim.text}</p>
+            </div>
+          ))}
+
+          {evidence.map((item, index) => (
+            <div
+              key={item.id}
+              className="absolute w-[150px] rounded-[14px] border border-[#9db9a7] bg-[#edf6ef] px-3 py-3 text-center shadow-sm"
+              style={{ left: evidenceX(index), top: evidenceY(index) }}
+            >
+              <p className="text-[9px] font-semibold text-[#567466]">{sourceLabel(item, locale)}</p>
+              <p className="mt-1 text-[9px] text-[#71877c]">{sourceLocator(item)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function MainDialogueView({ turns, pendingQuestion = null }: { turns: DialogueTurn[]; pendingQuestion?: string | null }) {
+  const { locale } = useLocale();
+  const [drawer, setDrawer] = useState<"sources" | "map" | "graph" | null>(null);
+  const [autoOpenedMap, setAutoOpenedMap] = useState(false);
   const [selectedCitation, setSelectedCitation] = useState<EvidenceItem | null>(null);
   const latest = [...turns].reverse().find((turn) => turn.response)?.response;
 
@@ -146,6 +221,13 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
     }
     return [...seen.values()];
   }, [turns]);
+
+  useEffect(() => {
+    if (!autoOpenedMap && turns.some((turn) => turn.response)) {
+      setDrawer("map");
+      setAutoOpenedMap(true);
+    }
+  }, [autoOpenedMap, turns]);
 
   function openCitation(citation: EvidenceItem) {
     setSelectedCitation(citation);
@@ -188,6 +270,9 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
             <div className="flex items-center gap-1.5">
               <button type="button" onClick={() => { setDrawer("map"); setSelectedCitation(null); }} className="rounded-full border border-[#d8bd91] bg-white/70 px-3 py-1.5 text-[10px] font-semibold hover:bg-white">
                 {locale === "ar" ? "خريطة الحوار" : "Dialogue map"}
+              </button>
+              <button type="button" onClick={() => { setDrawer("graph"); setSelectedCitation(null); }} className="rounded-full border border-[#d8bd91] bg-white/70 px-3 py-1.5 text-[10px] font-semibold hover:bg-white">
+                {locale === "ar" ? "شبكة الأدلة" : "Evidence graph"}
               </button>
               <button type="button" onClick={() => { setDrawer("sources"); setSelectedCitation(null); }} className="rounded-full border border-[#d8bd91] bg-white/70 px-3 py-1.5 text-[10px] font-semibold hover:bg-white">
                 {locale === "ar" ? `المصادر (${allCitations.length})` : `Sources (${allCitations.length})`}
@@ -237,6 +322,24 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
                 {turnIndex < turns.length - 1 && <div className="mx-auto h-px w-2/3 bg-[#d8bd91]/30" />}
               </section>
             ))}
+            {pendingQuestion && (
+              <section className="space-y-3">
+                <div className="flex justify-end">
+                  <div className="max-w-[78%] rounded-[18px_18px_5px_18px] border border-[#c8d8ce] bg-[#e7efe8]/95 px-4 py-3 shadow-sm">
+                    <p className="mb-1 text-[9px] font-semibold text-[#71877c]">{locale === "ar" ? "أنت" : "You"}</p>
+                    <p className="text-[13px] leading-6 text-[#365f4f]">{pendingQuestion}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-full border border-[#d8bd91] bg-[#fffaf0] p-1 shadow-sm">
+                    <Image src="/brand/rashid-rosette.png" alt="" width={28} height={28} className="h-7 w-7 animate-[spin_2.4s_linear_infinite]" />
+                  </div>
+                  <div className="rounded-[18px_18px_18px_5px] border border-[#e4c9c2] bg-[#fff8f4]/95 px-4 py-3 text-[11px] text-[#71877c] shadow-sm">
+                    {locale === "ar" ? "راشد يفكّر ويراجع الأدلة…" : "Rashid is thinking and checking the evidence…"}
+                  </div>
+                </div>
+              </section>
+            )}
             <div id="dialogue-end" />
           </div>
         </div>
@@ -248,7 +351,7 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
         >
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-[15px] font-bold text-[#365f4f]">
-              {drawer === "map" ? (locale === "ar" ? "خريطة الحوار" : "Dialogue map") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}
+              {drawer === "map" ? (locale === "ar" ? "خريطة الحوار" : "Dialogue map") : drawer === "graph" ? (locale === "ar" ? "شبكة الحوار والأدلة" : "Dialogue evidence graph") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}
             </h2>
             <button type="button" onClick={() => setDrawer(null)} className="rounded-full border border-[#d8bd91] bg-white px-2.5 py-1 text-[11px]">×</button>
           </div>
@@ -257,6 +360,8 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
             <div className="rounded-[16px] border border-[#e4c9c2] bg-white p-4 shadow-sm">
               <MapMini response={latest} />
             </div>
+          ) : drawer === "graph" ? (
+            <EvidenceGraphCanvas turns={turns} />
           ) : selectedCitation ? (
             <div>
               <div className="rounded-[14px] border border-[#cbd9cf] bg-white p-4 shadow-sm">
@@ -299,10 +404,10 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
         <div className="fixed inset-0 z-[70] bg-black/20 lg:hidden" onClick={() => setDrawer(null)}>
           <aside onClick={(event) => event.stopPropagation()} className="absolute left-0 top-0 h-full w-[88vw] max-w-[360px] overflow-y-auto bg-[#fffaf0] p-5 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-[15px] font-bold">{drawer === "map" ? (locale === "ar" ? "خريطة الحوار" : "Dialogue map") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}</h2>
+              <h2 className="text-[15px] font-bold">{drawer === "map" ? (locale === "ar" ? "خريطة الحوار" : "Dialogue map") : drawer === "graph" ? (locale === "ar" ? "شبكة الحوار والأدلة" : "Dialogue evidence graph") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}</h2>
               <button type="button" onClick={() => setDrawer(null)} className="rounded-full border border-[#d8bd91] bg-white px-2.5 py-1 text-[11px]">×</button>
             </div>
-            {drawer === "map" ? <MapMini response={latest} /> : selectedCitation ? (
+            {drawer === "map" ? <MapMini response={latest} /> : drawer === "graph" ? <EvidenceGraphCanvas turns={turns} /> : selectedCitation ? (
               <div className="rounded-[14px] border border-[#cbd9cf] bg-white p-4">
                 <p className="text-[12px] font-bold">{sourceLabel(selectedCitation, locale)}</p>
                 <p className="mt-1 text-[10px] text-[#71877c]">{sourceLocator(selectedCitation)}</p>
