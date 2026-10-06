@@ -56,11 +56,26 @@ export async function retrieveEvidenceDetailed(input: RetrievalQuery, options: {
       resultsByConnector[key] = 0;
     }
   });
-  // Use approved web search only for knowledge needs that primary providers could not fill.
+  // Approved web search is fallback-only, but "non-empty" is not the same as
+  // "sufficient". Trigger it when primary retrieval is sparse, low-confidence,
+  // or only fills the generic other_approved bucket while a specialized source
+  // family (tafsir/terminology/seerah/history/etc.) was requested.
   if (webConnector) {
     for (const needPlan of plan) {
-      const hasNeedResult = all.some((candidate) => needPlan.sourceTypes.includes(candidate.sourceType));
-      if (hasNeedResult) continue;
+      const primaryForNeed = all.filter((candidate) => needPlan.sourceTypes.includes(candidate.sourceType));
+      const hasSpecializedType = needPlan.sourceTypes
+        .filter((type) => type !== "other_approved")
+        .some((type) => primaryForNeed.some((candidate) => candidate.sourceType === type));
+      const bestPrimaryScore = primaryForNeed.reduce((best, candidate) => Math.max(best, candidate.score), -Infinity);
+      const onlyGeneric = primaryForNeed.length > 0 &&
+        primaryForNeed.every((candidate) => candidate.sourceType === "other_approved");
+      const insufficient =
+        primaryForNeed.length < 3 ||
+        bestPrimaryScore < 0.7 ||
+        (needPlan.sourceTypes.some((type) => type !== "other_approved") && !hasSpecializedType) ||
+        onlyGeneric;
+
+      if (!insufficient) continue;
       try {
         const webResults = await webConnector.search({ ...query, needs: [needPlan.need], sourceTypes: needPlan.sourceTypes });
         const valid = webResults.filter((candidate) => needPlan.sourceTypes.includes(candidate.sourceType));
