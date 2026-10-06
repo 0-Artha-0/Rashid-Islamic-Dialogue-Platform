@@ -13,7 +13,8 @@ async function main() {
     const found = await connector.search({
       query: sample.text, route: "LOOKUP", contentLevel: "A", queryLanguage: "ar",
       preferredResponseLanguage: "ar", preferredSourceLanguages: ["ar"],
-      conceptIds: [], sourceTypes: ["hadith"], topK: 8,
+      conceptIds: [],
+    needs: [], sourceTypes: ["hadith"], topK: 8,
     });
     const match = found.find(item => item.chunkId === sample.chunkId);
     assert.ok(match, `Default local connector did not retrieve ${sample.chunkId}`);
