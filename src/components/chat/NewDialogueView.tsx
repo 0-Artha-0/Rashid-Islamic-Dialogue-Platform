@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sidebar } from "@/components/home/Sidebar";
 import { AttachmentMenu } from "@/components/chat/AttachmentMenu";
-import { MainDialogueView } from "@/components/chat/MainDialogueView";
+import { MainDialogueView, type DialogueTurn } from "@/components/chat/MainDialogueView";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { useSession } from "@/components/session/SessionProvider";
-import { structuredResponseSchema, type StructuredResponse } from "@/lib/schemas/response";
+import { structuredResponseSchema } from "@/lib/schemas/response";
 
 const examplePrompts = [
   "ما معنى التوحيد؟",
@@ -21,12 +21,12 @@ export function NewDialogueView() {
   const { sessionId, userProfile } = useSession();
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [response, setResponse] = useState<StructuredResponse | null>(null);
-  const [lastQuestion, setLastQuestion] = useState("");
+  const [turns, setTurns] = useState<DialogueTurn[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [thinkingStep, setThinkingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
+  const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const initial = new URLSearchParams(window.location.search).get("q");
@@ -43,6 +43,10 @@ export function NewDialogueView() {
     }, 2200);
     return () => window.clearInterval(timer);
   }, [isSending]);
+
+  useEffect(() => {
+    if (turns.length > 0) endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [turns]);
 
   const thinkingMessages = locale === "en"
     ? ["Understanding your question…", "Checking trusted sources…", "Verifying the evidence…", "Preparing a clear answer…"]
@@ -68,6 +72,7 @@ export function NewDialogueView() {
     if (!trimmed || isSending || !sessionId || !userProfile) return;
     setIsSending(true);
     setError(null);
+    setMessage("");
     try {
       const id = await ensureConversation();
       const chat = await fetch("/api/chat", {
@@ -83,44 +88,44 @@ export function NewDialogueView() {
       const body = await chat.json();
       if (!chat.ok) throw new Error(body?.error ?? "Unable to complete the dialogue.");
       const parsed = structuredResponseSchema.parse(body);
-      setLastQuestion(trimmed);
-      setResponse(parsed);
-      setMessage("");
+      setTurns((current) => [...current, { question: trimmed, response: parsed }]);
     } catch (cause) {
+      setMessage(trimmed);
       setError(cause instanceof Error ? cause.message : "Unable to complete the dialogue.");
     } finally {
       setIsSending(false);
     }
   }
 
-  if (response) {
+  if (turns.length > 0) {
     return (
       <div className="min-h-screen">
-        <MainDialogueView response={response} question={lastQuestion} />
-        <div dir={locale === "en" ? "ltr" : "rtl"} className="fixed bottom-4 left-1/2 z-50 w-[min(92vw,620px)] -translate-x-1/2">
+        <MainDialogueView turns={turns} />
+        <div ref={endRef} />
+        <div dir={locale === "en" ? "ltr" : "rtl"} className="fixed bottom-4 left-1/2 z-50 w-[min(92vw,680px)] -translate-x-1/2">
           {isSending && (
-            <div aria-live="polite" className="mb-2 flex items-center justify-center gap-2 rounded-full border border-[#d8bd91] bg-[#fffdf8]/95 px-4 py-2 text-[11px] font-medium text-[#365f4f] shadow-sm backdrop-blur">
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-[#365f4f]" aria-hidden="true" />
+            <div aria-live="polite" className="mb-2 flex items-center justify-center gap-3 rounded-full border border-[#d8bd91] bg-[#fffdf8]/95 px-4 py-2 text-[11px] font-medium text-[#365f4f] shadow-md backdrop-blur">
+              <Image src="/brand/rashid-logo.svg" alt="" width={24} height={24} className="h-6 w-6 animate-[spin_2.4s_linear_infinite]" />
               <span>{thinkingMessages[thinkingStep]}</span>
             </div>
           )}
           <form
             onSubmit={(event) => { event.preventDefault(); void sendMessage(); }}
-            className="flex gap-2 rounded-[12px] border border-[#d8bd91] bg-[#fffdf8]/95 p-2 shadow-lg backdrop-blur"
+            className="flex gap-2 rounded-[14px] border border-[#d8bd91] bg-[#fffdf8]/95 p-2 shadow-lg backdrop-blur"
           >
             <input
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               placeholder={locale === "en" ? "Continue the dialogue..." : "أكمل الحوار..."}
-              className="min-w-0 flex-1 rounded-[9px] border border-[#d8bd91] bg-white/80 px-3 py-2 text-[12px] text-[#365f4f] outline-none"
+              className="min-w-0 flex-1 rounded-[10px] border border-[#d8bd91] bg-white/90 px-3 py-2.5 text-[12px] text-[#365f4f] outline-none"
               dir={locale === "en" ? "ltr" : "rtl"}
             />
             <button
               type="submit"
               disabled={isSending || !message.trim()}
-              className="rounded-[9px] bg-[#365f4f] px-4 py-2 text-[11px] font-semibold text-white disabled:opacity-50"
+              className="rounded-[10px] bg-[#365f4f] px-4 py-2 text-[11px] font-semibold text-white disabled:opacity-50"
             >
-              {isSending ? (locale === "en" ? "Sending..." : "جارٍ الإرسال...") : t.newDialogue.send}
+              {isSending ? (locale === "en" ? "Thinking…" : "يفكّر…") : t.newDialogue.send}
             </button>
           </form>
           {error && <p className="mt-1 rounded bg-white/90 px-2 py-1 text-[10px] text-[#9a5d52]">{error}</p>}
@@ -166,15 +171,15 @@ export function NewDialogueView() {
             </div>
           </section>
           {isSending && (
-            <div aria-live="polite" className="mt-3 flex items-center gap-2 rounded-full border border-[#d8bd91] bg-[#fffdf8]/80 px-4 py-2 text-[11px] font-medium text-[#365f4f] shadow-sm backdrop-blur">
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-[#365f4f]" aria-hidden="true" />
+            <div aria-live="polite" className="mt-3 flex items-center gap-3 rounded-full border border-[#d8bd91] bg-[#fffdf8]/90 px-4 py-2 text-[11px] font-medium text-[#365f4f] shadow-sm backdrop-blur">
+              <Image src="/brand/rashid-logo.svg" alt="" width={24} height={24} className="h-6 w-6 animate-[spin_2.4s_linear_infinite]" />
               <span>{thinkingMessages[thinkingStep]}</span>
             </div>
           )}
           <div className="mt-3 flex items-center justify-center gap-2" dir={locale === "en" ? "ltr" : "rtl"}>
             <Link href="/" className="inline-flex h-10 items-center justify-center rounded-[10px] border border-[#d8bd91] bg-[#fffdf8]/65 px-4 text-[12px] font-medium text-[#365f4f]">{t.newDialogue.back}</Link>
             <button type="button" disabled={isSending || !message.trim() || !sessionId} onClick={() => void sendMessage()} className="inline-flex h-10 min-w-[90px] items-center justify-center rounded-[10px] bg-[#365f4f] px-4 text-[12px] font-semibold text-white disabled:opacity-50">
-              {isSending ? (locale === "en" ? "Sending..." : "جارٍ الإرسال...") : t.newDialogue.send}
+              {isSending ? (locale === "en" ? "Thinking…" : "يفكّر…") : t.newDialogue.send}
             </button>
           </div>
           {error && <p role="alert" className="mt-2 text-[10px] text-[#9a5d52]">{error}</p>}
