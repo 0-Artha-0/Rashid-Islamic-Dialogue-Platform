@@ -47,7 +47,17 @@ export async function retrieveEvidenceDetailed(input: RetrievalQuery, options: {
   const rankedAll = rankCandidates(deduped, query);
   // Weak/strange hadith remain searchable for authentication questions, but cannot become primary evidence in ordinary answers.
   const eligible = rankedAll.filter(isPrimaryEvidenceEligible);
-  const ranked = eligible.slice(0, query.topK);
+  // Keep coverage across requested source families instead of letting one source
+  // type occupy the entire EvidencePack.
+  const requiredTypes = [...new Set(plan.flatMap((item) => item.sourceTypes))];
+  const coverage: EvidenceCandidate[] = [];
+  for (const type of requiredTypes) {
+    const match = eligible.find((candidate) => candidate.sourceType === type && !coverage.some((item) => item.id === candidate.id));
+    if (match) coverage.push(match);
+    if (coverage.length >= query.topK) break;
+  }
+  const ranked = [...coverage, ...eligible.filter((candidate) => !coverage.some((item) => item.id === candidate.id))]
+    .slice(0, query.topK);
   const kept = new Set(ranked.map(c=>c.id));
   const rejectedReason = (c: EvidenceCandidate) => !isPrimaryEvidenceEligible(c) ? "hadith_grade_not_eligible_for_primary_evidence" : "below_top_k_after_evidence_aware_ranking";
   const result: RetrievalResult = {
