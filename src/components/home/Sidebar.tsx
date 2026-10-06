@@ -94,14 +94,14 @@ export function Sidebar({
       {/* Top Brand & Nav Section */}
       <div>
         {/* Compact Brand Header */}
-        <div className="flex flex-col items-center justify-center pt-2 pb-4">
+        <div className="flex flex-col items-center justify-center pt-2 pb-3">
           <Image
             src="/brand/rashid-logo.svg"
             alt="شعار راشد | RASHID"
-            width={78}
-            height={44}
+            width={120}
+            height={68}
             priority
-            className="h-10 sm:h-11 w-auto object-contain"
+            className="h-14 sm:h-16 w-auto object-contain drop-shadow-sm"
           />
         </div>
 
