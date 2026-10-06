@@ -34,6 +34,7 @@ const base: Omit<RetrievalQuery, "query" | "route" | "sourceTypes"> = {
   preferredResponseLanguage: "en",
   preferredSourceLanguages: ["en"],
   conceptIds: [],
+    needs: [],
   topK: 5
 };
 
