@@ -77,14 +77,30 @@ function validatePlan(input: PlanDialogueInput, value: unknown): DialoguePlan {
   for (const evidenceId of plan.focusEvidenceIds) {
     if (!evidence.has(evidenceId)) throw new Error(`DialoguePlan references unknown evidence ${evidenceId}.`);
   }
-  if (input.router.route === "DISAGREEMENT" && plan.nextMove !== "EXPLAIN_DISAGREEMENT") {
+
+  // Planner focus is a presentation choice; verified claim support is a safety
+  // invariant. If the LLM focuses a claim but forgets one of that claim's
+  // verified evidence ids, expand the evidence focus deterministically instead
+  // of crashing later in the Writer.
+  const requiredEvidenceIds = plan.focusClaimIds.flatMap((claimId) =>
+    verificationByClaim.get(claimId)?.evidenceIds ?? []
+  );
+  const normalizedPlan = {
+    ...plan,
+    focusEvidenceIds: [...new Set([...plan.focusEvidenceIds, ...requiredEvidenceIds])],
+  };
+  for (const evidenceId of normalizedPlan.focusEvidenceIds) {
+    if (!evidence.has(evidenceId)) throw new Error(`Verified evidence ${evidenceId} is missing from the EvidencePack.`);
+  }
+
+  if (input.router.route === "DISAGREEMENT" && normalizedPlan.nextMove !== "EXPLAIN_DISAGREEMENT") {
     throw new Error("DISAGREEMENT route requires EXPLAIN_DISAGREEMENT.");
   }
-  if (plan.nextMove === "CLARIFY" && !plan.clarificationQuestion) throw new Error("CLARIFY move requires clarificationQuestion.");
-  if (plan.nextMove !== "CLARIFY" && plan.clarificationQuestion !== null) {
+  if (normalizedPlan.nextMove === "CLARIFY" && !normalizedPlan.clarificationQuestion) throw new Error("CLARIFY move requires clarificationQuestion.");
+  if (normalizedPlan.nextMove !== "CLARIFY" && normalizedPlan.clarificationQuestion !== null) {
     throw new Error("clarificationQuestion must be null outside CLARIFY.");
   }
-  return plan;
+  return dialoguePlanSchema.parse(normalizedPlan);
 }
 
 export async function planDialogue(input: PlanDialogueInput, llm: LlmClient = getLlmClient()): Promise<DialoguePlan> {
