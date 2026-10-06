@@ -32,7 +32,12 @@ export function rankCandidates(candidates: EvidenceCandidate[], query: Retrieval
       const conceptOverlap = query.conceptIds.filter((id) => candidate.conceptIds.includes(id)).length;
       const conceptBoost = query.conceptIds.length ? (conceptOverlap / query.conceptIds.length) * 0.12 : 0;
       const provenanceBoost = (candidate.url ? 0.05 : 0) + (candidate.locator ? 0.03 : 0);
-      const finalScore = candidate.score * 0.5 + lexical[index] * 0.25 + sourceBoost + languageBoost + conceptBoost + provenanceBoost + hadithFitness(candidate);
+      const authorityBoost =
+        candidate.sourceId === "quranenc" ? 0.28 :
+        candidate.sourceId === "hadeethenc" ? 0.24 :
+        candidate.sourceId === "islamic-content-mcp" && (candidate.sourceType === "quran" || candidate.sourceType === "hadith") ? 0.16 :
+        candidate.sourceId === "dorar-hadith-local" ? -0.06 : 0;
+      const finalScore = candidate.score * 0.5 + lexical[index] * 0.25 + sourceBoost + languageBoost + conceptBoost + provenanceBoost + authorityBoost + hadithFitness(candidate);
       return { candidate, finalScore };
     })
     .sort((a, b) => b.finalScore - a.finalScore)
