@@ -13,11 +13,8 @@ export type LlmClient = {
 };
 
 const DEFAULT_MODELS = [
-  // Fast/current models first. Each model is independently cooled down after
-  // quota/rate-limit/unavailable errors, so later stages skip known-bad models.
   "gemini-3.8-flash",
   "gemini-3.7-flash",
-  "gemini-3.6-flash",
   "gemini-3.5-flash",
   "gemini-3.5-flash-lite",
   "gemini-3.1-flash-lite",
@@ -25,6 +22,7 @@ const DEFAULT_MODELS = [
   "gemini-3.1-pro-preview",
   "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
+  "gemini-2.5-pro",
 ];
 
 const unavailableUntil = new Map<string, number>();
