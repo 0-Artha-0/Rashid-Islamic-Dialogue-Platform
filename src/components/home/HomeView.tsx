@@ -15,8 +15,7 @@ export function HomeView() {
   const { locale, t } = useLocale();
   const router = useRouter();
   const handleSearchSubmit = (query: string) => {
-    void query;
-    router.push("/new-dialogue");
+    router.push(`/new-dialogue?q=${encodeURIComponent(query)}`);
   };
 
   const handleSelectFeature = (id: string) => {
@@ -33,8 +32,7 @@ export function HomeView() {
   };
 
   const handleSelectSuggestion = (suggestion: string) => {
-    void suggestion;
-    router.push("/new-dialogue");
+    router.push(`/new-dialogue?q=${encodeURIComponent(suggestion)}`);
   };
 
   return (
