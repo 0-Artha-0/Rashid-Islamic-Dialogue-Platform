@@ -133,7 +133,7 @@ export function NewDialogueView() {
         <div dir={locale === "en" ? "ltr" : "rtl"} className="fixed bottom-4 left-1/2 z-50 w-[min(92vw,680px)] -translate-x-1/2">
           {isSending && (
             <div aria-live="polite" className="mb-2 flex items-center justify-center gap-3 rounded-full border border-[#d8bd91] bg-[#fffdf8]/95 px-4 py-2 text-[11px] font-medium text-[#365f4f] shadow-md backdrop-blur">
-              <Image src="/brand/rashid-logo.svg" alt="" width={24} height={24} className="h-6 w-6 animate-[spin_2.4s_linear_infinite]" />
+              <Image src="/brand/rashid-rosette.png" alt="" width={24} height={24} className="h-6 w-6 animate-[spin_2.4s_linear_infinite]" />
               <span>{thinkingMessages[thinkingStep]}</span>
             </div>
           )}
@@ -200,7 +200,7 @@ export function NewDialogueView() {
           </section>
           {isSending && (
             <div aria-live="polite" className="mt-3 flex items-center gap-3 rounded-full border border-[#d8bd91] bg-[#fffdf8]/90 px-4 py-2 text-[11px] font-medium text-[#365f4f] shadow-sm backdrop-blur">
-              <Image src="/brand/rashid-logo.svg" alt="" width={24} height={24} className="h-6 w-6 animate-[spin_2.4s_linear_infinite]" />
+              <Image src="/brand/rashid-rosette.png" alt="" width={24} height={24} className="h-6 w-6 animate-[spin_2.4s_linear_infinite]" />
               <span>{thinkingMessages[thinkingStep]}</span>
             </div>
           )}
