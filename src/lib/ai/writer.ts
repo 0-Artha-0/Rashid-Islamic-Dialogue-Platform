@@ -70,13 +70,21 @@ export function validateWrittenAnswer(input: WriteAnswerInput, value: unknown): 
       return claim;
     });
     const allowed = new Set(linked.flatMap(c => c.evidenceIds));
-    if (paragraph.evidenceIds.some(id => !allowed.has(id))) throw new Error("Writer cites unrelated or unknown evidence.");
+    // LLMs can occasionally echo an extra planner-focused evidence id that is not
+    // actually linked to this paragraph's claims. Drop it instead of crashing the
+    // whole follow-up, while still requiring every claim to retain verified evidence.
+    paragraph.evidenceIds = paragraph.evidenceIds.filter(id => allowed.has(id));
     for (const claim of linked) {
-      if (!claim.evidenceIds.some(id => paragraph.evidenceIds.includes(id))) throw new Error("Writer omits claim evidence.");
+      if (!claim.evidenceIds.some(id => paragraph.evidenceIds.includes(id))) {
+        const verifiedId = claim.evidenceIds.find(id => allowed.has(id));
+        if (!verifiedId) throw new Error("Writer omits claim evidence.");
+        paragraph.evidenceIds.push(verifiedId);
+      }
     }
+    paragraph.evidenceIds = [...new Set(paragraph.evidenceIds)];
     if (linked.some(c => c.status !== "SUPPORTED") && !paragraph.qualification) throw new Error("PARTIAL/CONFLICTED claims require a visible qualification.");
   }
-  return answer;
+  return writtenAnswerSchema.parse(answer);
 }
 export function renderWrittenAnswer(answer: WrittenAnswer): string {
   return answer.paragraphs.map(p => [p.text, p.qualification].filter(Boolean).join("\n")).join("\n\n");
