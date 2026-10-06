@@ -23,10 +23,10 @@ export function LandingView() {
           <Image
             src="/brand/rashid-logo.svg"
             alt="راشد | RASHID"
-            width={100}
-            height={56}
+            width={220}
+            height={123}
             priority
-            className="h-auto w-[144px] object-contain sm:w-[176px] lg:w-[208px]"
+            className="h-auto w-[190px] object-contain drop-shadow-sm sm:w-[230px] lg:w-[270px]"
           />
 
           <div className="mt-7 flex w-full flex-col items-center gap-5 sm:mt-9 sm:gap-6">
