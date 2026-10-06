@@ -117,7 +117,12 @@ function validatePlan(input: PlanDialogueInput, value: unknown): DialoguePlan {
   }
 
   if (input.router.route === "DISAGREEMENT" && normalizedPlan.nextMove !== "EXPLAIN_DISAGREEMENT") {
-    throw new Error("DISAGREEMENT route requires EXPLAIN_DISAGREEMENT.");
+    normalizedPlan = {
+      ...normalizedPlan,
+      nextMove: "EXPLAIN_DISAGREEMENT",
+      clarificationQuestion: null,
+      reason: normalizedPlan.reason || "The router classified this turn as a disagreement, so the response must explain the disagreement.",
+    };
   }
   if (normalizedPlan.nextMove === "CLARIFY" && !normalizedPlan.clarificationQuestion) throw new Error("CLARIFY move requires clarificationQuestion.");
   if (normalizedPlan.nextMove !== "CLARIFY" && normalizedPlan.clarificationQuestion !== null) {
