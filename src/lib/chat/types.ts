@@ -23,4 +23,5 @@ export type ChatPipelineDependencies = {
   buildDiscussionMap: typeof import("@/lib/dialogue/buildDiscussionMap").buildDiscussionMap;
   buildEvidenceGraph: typeof import("@/lib/dialogue/buildEvidenceGraph").buildEvidenceGraph;
   claimGate?: ClaimGateDependency;
+  finalResponse?: typeof import("@/lib/ai/finalPipeline").generateFinalResponse;
 };

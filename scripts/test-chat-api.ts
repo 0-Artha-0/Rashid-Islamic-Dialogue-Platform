@@ -299,7 +299,38 @@ async function testTechnicalFailureIsSafe() {
   assert.doesNotMatch(errorTurn?.content ?? "", /secret database/);
 }
 
+async function testFinalResponseBoundary() {
+  const claimGate = { run: async (_text: string, pack: import("../src/lib/schemas/evidence").EvidencePack) => ({
+    claims: [{ id: "c1", text: "Accepted claim", evidenceIds: [pack.evidence[0].id] }],
+    verifications: [{ claimId: "c1", status: "SUPPORTED" as const, reason: "Evidence", evidenceIds: [pack.evidence[0].id] }],
+  }) };
+  const harness = makeDeps({ claimGate, finalResponse: async (input) => ({
+    message: "الرد الذي اجتاز الفحص", claims: input.claims.map(c => ({ ...c, status: "SUPPORTED" as const })), citations: input.evidencePack.evidence,
+  }) });
+  const result = await handleChatRequest({ sessionId: session.id, conversationId: conversation.id, message: "normal" }, harness.deps);
+  assert.equal(result.message, "الرد الذي اجتاز الفحص");
+  assert.equal(harness.getTurns().at(-1)?.content, result.message);
+  const blocked = makeDeps({ claimGate, finalResponse: async () => { throw new Error("Final response failed evidence verification."); } });
+  await expectStatus(handleChatRequest({ sessionId: session.id, conversationId: conversation.id, message: "normal" }, blocked.deps), 500);
+  assert.equal(blocked.getState(), null);
+  assert.equal(blocked.getTurns().at(-1)?.content, "The request could not be completed safely.");
+  const unsupported = makeDeps({
+    claimGate: { run: async (text, pack) => {
+      const result = await claimGate.run(text, pack);
+      return { ...result, verifications: result.verifications.map(v => ({ ...v, status: "UNSUPPORTED" as const })) };
+    } },
+    finalResponse: async () => { throw new Error("Must not generate without accepted claims"); },
+  });
+  const insufficient = await handleChatRequest({ sessionId: session.id, conversationId: conversation.id, message: "normal" }, unsupported.deps);
+  assert.equal(insufficient.status, "insufficient_evidence");
+  assert.deepEqual(insufficient.claims, []);
+  assert.deepEqual(insufficient.citations, []);
+  assert.deepEqual(unsupported.getState()?.evidenceUsed, []);
+  assert.equal(typeof defaultChatDependencies.finalResponse, "function");
+}
+
 async function main() {
+  await testFinalResponseBoundary();
   await testInvalidRequest();
   await testUnknownSession();
   await testOwnership();

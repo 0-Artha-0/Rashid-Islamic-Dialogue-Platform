@@ -224,9 +224,36 @@ export async function handleChatRequest(
       });
     }
 
-    const message = deps.claimGate
+    if (deps.finalResponse && !verifications.some(v => v.status !== "UNSUPPORTED")) {
+      const message = session.userProfile.preferredResponseLanguage.startsWith("ar")
+        ? "لم أجد أدلة معتمدة كافية لصياغة جواب موثوق."
+        : "I could not find sufficient approved evidence to answer this question safely.";
+      const result = response({
+        conversationId: conversation.id, status: "insufficient_evidence", message,
+        router, dialogueState: previousState,
+        referral: referralFor("insufficient_evidence", message),
+      }, deps);
+      const state = await persistState(conversation.id, input, previousState, result, [], deps);
+      const final = structuredResponseSchema.parse({ ...result, dialogueState: state, discussionMap: deps.buildDiscussionMap(state) });
+      await deps.saveConversationTurn({ conversationId: conversation.id, role: "assistant", content: final.message });
+      return final;
+    }
+
+    let message = deps.claimGate
       ? "Evidence was retrieved and passed through the claim-evidence integration boundary. Final prose generation is supplied by the Writer module when available."
       : "Evidence was retrieved successfully. Final prose generation is supplied by the Writer module when available.";
+
+    let citations = evidencePack.evidence;
+    if (deps.finalResponse) {
+      if (!deps.claimGate) throw new Error("Final response requires the claim gate.");
+      const generated = await deps.finalResponse({
+        router, evidencePack, claims, verifications,
+        dialogueState: previousState, userProfile: session.userProfile,
+      });
+      message = generated.message;
+      claims = generated.claims;
+      citations = generated.citations;
+    }
 
     const result = response({
       conversationId: conversation.id,
@@ -234,7 +261,7 @@ export async function handleChatRequest(
       message,
       router,
       dialogueState: previousState,
-      citations: evidencePack.evidence,
+      citations,
       claims,
     }, deps);
 
@@ -244,7 +271,7 @@ export async function handleChatRequest(
       verifications,
     });
 
-    const evidenceIds = evidencePack.evidence.map((item) => item.id);
+    const evidenceIds = citations.map((item) => item.id);
     const state = await persistState(conversation.id, input, previousState, result, evidenceIds, deps);
     const final = structuredResponseSchema.parse({
       ...result,
