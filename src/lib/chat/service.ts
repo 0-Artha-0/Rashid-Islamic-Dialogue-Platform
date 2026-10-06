@@ -9,6 +9,8 @@ import type { EvidencePack } from "@/lib/schemas/evidence";
 import type { DialogueState } from "@/lib/schemas/dialogue";
 import type { AtomicClaim, ClaimVerification } from "@/lib/schemas/claims";
 import type { ChatPipelineDependencies } from "./types";
+import { planSearchQueries } from "@/lib/ai/retrievalPlanner";
+import type { EvidenceItem } from "@/lib/schemas/evidence";
 
 export class ChatServiceError extends Error {
   constructor(
@@ -88,18 +90,22 @@ async function persistState(
   result: StructuredResponse,
   evidenceIds: string[],
   deps: ChatPipelineDependencies,
+  verifiedEvidence: EvidenceItem[] = [],
 ): Promise<DialogueState> {
   const allowedEvidenceIds = [...new Set([
     ...previousState.evidenceUsed,
     ...evidenceIds,
   ])];
 
-  const nextState = await deps.updateDialogueState({
+  let nextState = await deps.updateDialogueState({
     previousDialogueState: previousState,
     userQuestion: input.message,
     verifiedResponseSummary: result.message,
     evidenceIdsUsed: allowedEvidenceIds,
   });
+  const priorEvidence = previousState.verifiedEvidence ?? [];
+  const mergedEvidence = [...priorEvidence, ...verifiedEvidence].filter((item, index, all) => all.findIndex((other) => other.id === item.id) === index);
+  nextState = { ...nextState, verifiedEvidence: mergedEvidence };
   return deps.saveDialogueState(conversationId, nextState);
 }
 
@@ -192,8 +198,36 @@ export async function handleChatRequest(
     }
 
     const retrievalQuery = buildRetrievalQuery({ ...input, userProfile: session.userProfile }, router);
-    let candidates = await deps.retrieveEvidence(retrievalQuery);
-    let evidencePack: EvidencePack = deps.buildEvidencePack(retrievalQuery, candidates);
+
+    // First reuse verified knowledge already gathered in this conversation.
+    // Retrieval happens only when that knowledge cannot support the current turn.
+    const cachedEvidence = previousState.verifiedEvidence ?? [];
+    let candidates = [] as Awaited<ReturnType<typeof deps.retrieveEvidence>>;
+    let evidencePack: EvidencePack = { question: input.message, evidence: cachedEvidence };
+    let claims: StructuredResponse["claims"] = [];
+    let verifications: ClaimVerification[] = [];
+
+    if (deps.claimGate && cachedEvidence.length) {
+      const cachedGate = await deps.claimGate.run(cachedEvidence.map((item) => item.text).join("\n\n"), evidencePack);
+      verifications = cachedGate.verifications;
+      claims = cachedGate.claims.map((claim) => {
+        const verification = cachedGate.verifications.find((item) => item.claimId === claim.id);
+        return { ...claim, status: verification?.status ?? claim.status };
+      });
+    }
+
+    const cacheCanAnswer = claims.length > 0 && verifications.some((item) => item.status !== "UNSUPPORTED");
+    if (!cacheCanAnswer) {
+      const planned = await planSearchQueries({ message: input.message, router, dialogueState: previousState });
+      const searches = planned.length ? planned : router.needs.map((need) => ({ need, query: input.message }));
+      const batches = await Promise.all(searches.map(({ need, query }) =>
+        deps.retrieveEvidence({ ...retrievalQuery, query, needs: [need] })
+      ));
+      candidates = batches.flat().filter((item, index, all) => all.findIndex((other) => other.id === item.id) === index);
+      evidencePack = deps.buildEvidencePack(retrievalQuery, candidates);
+      claims = [];
+      verifications = [];
+    }
 
     if (!evidencePack.evidence.length) {
       const responseLanguage = session.userProfile.preferredResponseLanguage ?? router.queryLanguage;
@@ -219,9 +253,7 @@ export async function handleChatRequest(
       return final;
     }
 
-    let claims: StructuredResponse["claims"] = [];
-    let verifications: ClaimVerification[] = [];
-    if (deps.claimGate) {
+    if (deps.claimGate && !cacheCanAnswer) {
       const candidateText = evidencePack.evidence.map((item) => item.text).join("\n\n");
       const gate = await deps.claimGate.run(candidateText, evidencePack);
       verifications = gate.verifications;
@@ -300,7 +332,7 @@ export async function handleChatRequest(
     });
 
     const evidenceIds = citations.map((item) => item.id);
-    const state = await persistState(conversation.id, input, previousState, result, evidenceIds, deps);
+    const state = await persistState(conversation.id, input, previousState, result, evidenceIds, deps, citations);
     const final = structuredResponseSchema.parse({
       ...result,
       dialogueState: state,
