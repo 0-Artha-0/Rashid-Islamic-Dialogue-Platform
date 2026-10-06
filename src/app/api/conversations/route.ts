@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createConversation, getConversation } from "@/lib/db/conversations";
+import { createConversation, getConversation, listConversationsBySession } from "@/lib/db/conversations";
+import { listConversationTurns } from "@/lib/db/turns";
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,16 +26,21 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const id = request.nextUrl.searchParams.get("id");
-    if (!id) {
-      return NextResponse.json({ error: "Conversation id is required." }, { status: 400 });
+    const sessionId = request.nextUrl.searchParams.get("sessionId");
+
+    if (id) {
+      const conversation = await getConversation(id);
+      if (!conversation) return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
+      const turns = await listConversationTurns(id);
+      return NextResponse.json({ ...conversation, turns });
     }
 
-    const conversation = await getConversation(id);
-    if (!conversation) {
-      return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
+    if (sessionId) {
+      const conversations = await listConversationsBySession(sessionId);
+      return NextResponse.json(conversations);
     }
 
-    return NextResponse.json(conversation);
+    return NextResponse.json({ error: "Conversation id or sessionId is required." }, { status: 400 });
   } catch (error) {
     console.error("Failed to read conversation:", error);
     return NextResponse.json({ error: "Unable to read conversation." }, { status: 500 });
