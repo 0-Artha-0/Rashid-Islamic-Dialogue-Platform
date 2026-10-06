@@ -19,7 +19,8 @@
     "test:chat-api": "tsx scripts/test-chat-api.ts",
     "test:planner": "tsx scripts/test-planner.ts",
     "test:writer": "tsx scripts/test-writer.ts",
-    "test:final-pipeline": "tsx scripts/test-final-pipeline.ts"
+    "test:final-pipeline": "tsx scripts/test-final-pipeline.ts",
+    "test:pipeline:live": "node --env-file=.env.local --import tsx scripts/test-pipeline-live.ts"
   },
   "dependencies": {
     "@google/genai": "2.24.0",
