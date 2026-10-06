@@ -7,19 +7,17 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 type ProfileReligiousBackground = NonNullable<UserProfile["religiousBackground"]>;
-
 type ReligiousBackgroundOption = {
   label: string;
-  selection: ProfileReligiousBackground | "interested_in_learning";
+  selection: ProfileReligiousBackground;
   profileValue?: ProfileReligiousBackground;
 };
 
 export function ReligiousBackgroundView() {
   const { locale, t } = useLocale();
-  const { draft, setGoal, setReligiousBackground, setReligiousBackgroundSelection } = useOnboarding();
+  const { draft, setReligiousBackground, setReligiousBackgroundSelection } = useOnboarding();
   const options: ReligiousBackgroundOption[] = [
     { label: t.religious.muslim, selection: "muslim", profileValue: "muslim" }, { label: t.religious.nonMuslim, selection: "non_muslim", profileValue: "non_muslim" },
-    { label: t.religious.other, selection: "other", profileValue: "other" }, { label: t.religious.interested, selection: "interested_in_learning" },
     { label: t.religious.preferNot, selection: "prefer_not_to_say", profileValue: "prefer_not_to_say" },
   ];
 
@@ -65,9 +63,8 @@ export function ReligiousBackgroundView() {
         </h1>
 
         <div className="mt-2 flex w-full max-w-[500px] flex-col items-center gap-1.5" role="group" aria-label="الخلفية الدينية">
-          {options.map((option, index) => {
+          {options.map((option) => {
             const isSelected = draft.religiousBackgroundSelection === option.selection;
-            const widthClass = index === options.length - 1 ? "w-[calc(100%-32px)]" : "w-full";
             return (
               <button
                 key={option.label}
@@ -76,9 +73,8 @@ export function ReligiousBackgroundView() {
                 onClick={() => {
                   setReligiousBackgroundSelection(option.selection);
                   setReligiousBackground(option.profileValue);
-                  if (option.selection === "interested_in_learning") setGoal("learn_about_islam");
                 }}
-                className={`flex h-11 ${widthClass} items-center justify-center rounded-[12px] bg-[#fffdf8]/35 px-3 text-[13px] font-semibold leading-5 text-[#365f4f] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#365f4f] focus-visible:ring-offset-2 ${
+                className={`flex h-11 w-full items-center justify-center rounded-[12px] bg-[#fffdf8]/35 px-3 text-[13px] font-semibold leading-5 text-[#365f4f] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#365f4f] focus-visible:ring-offset-2 ${
                   isSelected
                     ? "border-2 border-[#365f4f]"
                     : "border border-[#d8bd91] hover:bg-[#fffdf8]/65"
@@ -101,7 +97,7 @@ export function ReligiousBackgroundView() {
             </svg>
           </Link>
           <Link
-            href="/onboarding/goal"
+            href={draft.religiousBackground === "non_muslim" ? "/onboarding/non-muslim-background" : "/onboarding/goal"}
             className="inline-flex h-10 min-w-[90px] items-center justify-center rounded-[10px] bg-[#365f4f] px-4 text-[12px] font-semibold leading-4 text-white transition-colors hover:bg-[#2d5143] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#365f4f] focus-visible:ring-offset-2"
           >
             {t.religious.continue}

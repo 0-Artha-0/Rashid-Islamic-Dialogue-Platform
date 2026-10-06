@@ -5,6 +5,7 @@ import type { ContentLanguage, UiLanguage } from "@/lib/schemas/common";
 import { userProfileSchema, type UserProfile } from "@/lib/schemas/userProfile";
 
 type ReligiousBackground = NonNullable<UserProfile["religiousBackground"]>;
+type NonMuslimBackground = NonNullable<UserProfile["nonMuslimBackground"]>;
 type UserGoal = UserProfile["goal"];
 type ExplanationDepth = UserProfile["explanationDepth"];
 type ReligiousBackgroundSelection = ReligiousBackground | "interested_in_learning";
@@ -13,6 +14,7 @@ export type OnboardingDraft = {
   uiLanguage: UiLanguage;
   preferredResponseLanguage: ContentLanguage;
   religiousBackground?: ReligiousBackground;
+  nonMuslimBackground?: NonMuslimBackground;
   religiousBackgroundSelection?: ReligiousBackgroundSelection;
   goal?: UserGoal;
   explanationDepth?: ExplanationDepth;
@@ -24,6 +26,7 @@ type OnboardingContextValue = {
   setUiLanguage: (language: UiLanguage) => void;
   setPreferredResponseLanguage: (language: ContentLanguage) => void;
   setReligiousBackground: (background: ReligiousBackground | undefined) => void;
+  setNonMuslimBackground: (background: NonMuslimBackground | undefined) => void;
   setReligiousBackgroundSelection: (selection: ReligiousBackgroundSelection) => void;
   setGoal: (goal: UserGoal) => void;
   setExplanationDepth: (depth: ExplanationDepth) => void;
@@ -47,7 +50,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     draft,
     setUiLanguage: (uiLanguage) => setDraft((current) => ({ ...current, uiLanguage })),
     setPreferredResponseLanguage: (preferredResponseLanguage) => setDraft((current) => ({ ...current, preferredResponseLanguage })),
-    setReligiousBackground: (religiousBackground) => setDraft((current) => ({ ...current, religiousBackground })),
+    setReligiousBackground: (religiousBackground) => setDraft((current) => ({
+      ...current,
+      religiousBackground,
+      ...(religiousBackground === "non_muslim" ? {} : { nonMuslimBackground: undefined }),
+    })),
+    setNonMuslimBackground: (nonMuslimBackground) => {
+      setDraft((current) => ({ ...current, nonMuslimBackground }));
+    },
     setReligiousBackgroundSelection: (religiousBackgroundSelection) => setDraft((current) => ({ ...current, religiousBackgroundSelection })),
     setGoal: (goal) => setDraft((current) => ({ ...current, goal })),
     setExplanationDepth: (explanationDepth) => setDraft((current) => ({ ...current, explanationDepth })),
@@ -58,6 +68,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         uiLanguage: draft.uiLanguage,
         preferredResponseLanguage: draft.preferredResponseLanguage,
         religiousBackground: draft.religiousBackground,
+        nonMuslimBackground: draft.religiousBackground === "non_muslim" ? draft.nonMuslimBackground : undefined,
         goal: draft.goal,
         explanationDepth: draft.explanationDepth,
         interests: draft.interests,
