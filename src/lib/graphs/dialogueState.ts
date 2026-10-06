@@ -9,5 +9,6 @@ export function createEmptyDialogueState(): DialogueState {
     openPointIds: [],
     disputedPointIds: [],
     evidenceUsed: [],
+    verifiedEvidence: [],
   };
 }
