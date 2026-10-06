@@ -79,26 +79,55 @@ function InlineAnswer({
 
 function MapMini({ response }: { response: StructuredResponse }) {
   const { locale } = useLocale();
+  const main = response.discussionMap.nodes.find((node) => node.kind === "main_question") ?? response.discussionMap.nodes[0];
+  const otherNodes = response.discussionMap.nodes.filter((node) => node.id !== main?.id);
+  const relationLabel = (relation: string) => {
+    const ar: Record<string,string> = { LEADS_TO:"يقود إلى", SUPPORTS:"يدعم", EXPANDS:"يتفرع إلى", CONTRASTS:"يقابل", RESOLVES:"يحسم" };
+    const en: Record<string,string> = { LEADS_TO:"Leads to", SUPPORTS:"Supports", EXPANDS:"Expands", CONTRASTS:"Contrasts", RESOLVES:"Resolves" };
+    return (locale === "ar" ? ar : en)[relation] ?? relation;
+  };
+  const tone = (status?: string | null) =>
+    status === "resolved" ? "border-[#8fb29d] bg-[#edf6ef]" :
+    status === "active" ? "border-[#d39a8b] bg-[#fff0ec]" :
+    status === "disputed" ? "border-[#c58c8c] bg-[#fbe9e9]" :
+    "border-[#d9bd87] bg-[#fff8e9]";
+
+  if (!main) return <p className="text-[12px] text-[#71877c]">{locale === "ar" ? "لا توجد خريطة بعد." : "No map yet."}</p>;
+
   return (
-    <div className="space-y-2">
-      {response.discussionMap.nodes.map((node, index) => (
-        <div key={node.id} className="relative flex items-start gap-3">
-          <div className="flex flex-col items-center">
-            <span className={`mt-1 h-3 w-3 rounded-full border-2 ${node.status === "resolved" ? "border-[#6f9a82] bg-[#dceadf]" : node.status === "active" ? "border-[#c48b7c] bg-[#f4ddd8]" : "border-[#c8aa73] bg-[#f4ead4]"}`} />
-            {index < response.discussionMap.nodes.length - 1 && <span className="h-8 w-px bg-[#d8bd91]" />}
-          </div>
-          <div className="pb-2">
-            <p className="text-[12px] font-semibold text-[#365f4f]">{node.label}</p>
-            <p className="mt-0.5 text-[10px] text-[#72847c]">
-              {node.status === "resolved"
-                ? (locale === "ar" ? "تمت مناقشته" : "Resolved")
-                : node.status === "active"
-                  ? (locale === "ar" ? "النقطة الحالية" : "Current point")
-                  : (locale === "ar" ? "نقطة مفتوحة" : "Open point")}
-            </p>
-          </div>
+    <div className="space-y-4">
+      <div className="mx-auto max-w-[280px] rounded-[16px] border-2 border-[#365f4f] bg-[#365f4f] px-4 py-3 text-center text-white shadow-sm">
+        <p className="text-[10px] opacity-75">{locale === "ar" ? "السؤال الرئيسي" : "Main question"}</p>
+        <p className="mt-1 text-[12px] font-bold leading-6">{main.label}</p>
+      </div>
+
+      {otherNodes.length > 0 && (
+        <div className="flex flex-col items-center">
+          <div className="h-5 w-px bg-[#c8aa73]" />
+          <div className="h-px w-[72%] bg-[#c8aa73]" />
         </div>
-      ))}
+      )}
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {otherNodes.map((node) => {
+          const incoming = response.discussionMap.edges.find((edge) => edge.target === node.id);
+          return (
+            <div key={node.id} className="relative pt-3">
+              <span className="absolute left-1/2 top-0 h-3 w-px -translate-x-1/2 bg-[#c8aa73]" />
+              <article className={`rounded-[14px] border px-3 py-3 text-center shadow-sm ${tone(node.status)}`}>
+                {incoming && <p className="mb-1 text-[9px] font-medium text-[#8b7650]">{relationLabel(incoming.relation)}</p>}
+                <p className="text-[11px] font-bold leading-5 text-[#365f4f]">{node.label}</p>
+                <p className="mt-1 text-[9px] text-[#71877c]">
+                  {node.status === "resolved" ? (locale === "ar" ? "تمت مناقشته" : "Resolved") :
+                   node.status === "active" ? (locale === "ar" ? "النقطة الحالية" : "Current point") :
+                   node.status === "disputed" ? (locale === "ar" ? "موضع نقاش" : "Disputed") :
+                   (locale === "ar" ? "نقطة مفتوحة" : "Open point")}
+                </p>
+              </article>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
