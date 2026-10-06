@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/home/Sidebar";
 import { AttachmentMenu } from "@/components/chat/AttachmentMenu";
 import { MainDialogueView } from "@/components/chat/MainDialogueView";
@@ -20,7 +19,6 @@ const examplePrompts = [
 export function NewDialogueView() {
   const { locale, t } = useLocale();
   const { sessionId, userProfile } = useSession();
-  const searchParams = useSearchParams();
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [response, setResponse] = useState<StructuredResponse | null>(null);
@@ -30,9 +28,9 @@ export function NewDialogueView() {
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
 
   useEffect(() => {
-    const initial = searchParams.get("q");
-    if (initial && !message) setMessage(initial);
-  }, [searchParams, message]);
+    const initial = new URLSearchParams(window.location.search).get("q");
+    if (initial) setMessage((current) => current || initial);
+  }, []);
 
   async function ensureConversation(): Promise<string> {
     if (conversationId) return conversationId;
