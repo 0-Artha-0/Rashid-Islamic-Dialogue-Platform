@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 export type LlmGenerateOptions = {
+  stage?: string;
   systemInstruction?: string;
   responseMimeType?: "application/json" | "text/plain";
   responseJsonSchema?: Record<string, unknown>;
@@ -35,7 +36,7 @@ function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function isFallbackEligible(error: unknown): boolean {
+export function isFallbackEligible(error: unknown): boolean {
   const message = errorText(error).toLowerCase();
 
   return (
@@ -70,6 +71,7 @@ export function getLlmClient(): LlmClient {
 
       for (let index = 0; index < models.length; index++) {
         const model = models[index];
+        const stage = options.stage ?? "llm";
 
         try {
           const response = await ai.models.generateContent({
@@ -88,21 +90,20 @@ export function getLlmClient(): LlmClient {
             throw new Error(`Gemini model ${model} returned an empty response.`);
           }
 
-          if (index > 0) {
-            console.warn(`LLM fallback succeeded with ${model} after ${index} failed model(s).`);
-          }
+          if (index > 0) console.warn(`[RASHID LLM] stage=${stage} fallback=${model} after=${index}`);
 
           return text;
         } catch (error) {
           const message = errorText(error);
           failures.push(`${model}: ${message}`);
+          console.error(`[RASHID LLM] stage=${stage} model=${model} attempt=${index + 1} error=${message}`);
 
           const hasNextModel = index < models.length - 1;
           if (!hasNextModel || !isFallbackEligible(error)) {
             throw error;
           }
 
-          console.warn(`LLM model ${model} unavailable; trying fallback model.`);
+          console.warn(`[RASHID LLM] stage=${stage} model=${model} fallback=true`);
         }
       }
 
