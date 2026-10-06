@@ -69,7 +69,7 @@ export function HomeView() {
               aria-hidden="true"
               viewBox="0 0 1000 600"
               preserveAspectRatio="none"
-              className="absolute inset-x-2 top-[88px] bottom-[-24px] h-[calc(100%-64px)] w-[calc(100%-1rem)] overflow-visible drop-shadow-[0_3px_10px_rgba(70,58,38,0.035)]"
+              className="absolute inset-x-2 top-[32px] bottom-[-24px] h-[calc(100%-16px)] w-[calc(100%-1rem)] overflow-visible drop-shadow-[0_3px_10px_rgba(70,58,38,0.035)]"
             >
               <path
                 d="M44 586V184C44 149 65 130 102 130H184C205 130 220 117 228 96C249 42 343 12 500 12C657 12 751 42 772 96C780 117 795 130 816 130H898C935 130 956 149 956 184V500C956 552 928 586 878 586H122C72 586 44 552 44 500Z"
