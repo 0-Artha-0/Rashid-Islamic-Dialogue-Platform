@@ -16,16 +16,32 @@ export async function retrieveEvidenceDetailed(input: RetrievalQuery, options: {
   const query = retrievalQuerySchema.parse(input);
   const local = options.connectors?.find((c) => c.name === "local") ?? createLocalCorpusConnector();
   const mcp = options.connectors?.find((c) => c.name === "islamic-content-mcp") ?? createIslamicContentMcpConnector();
+  const plan = planRetrieval(query);
   const selected = selectConnectors(query, { local, mcp });
   const resultsByConnector: Record<string, number> = {};
   const all: EvidenceCandidate[] = [];
-  const settled = await Promise.allSettled(selected.map((connector) => connector.search(query)));
+  // Execute each knowledge need as its own retrieval task. This prevents one
+  // broad keyword search from satisfying a Quran/definition/context plan only on paper.
+  const tasks = plan.flatMap((needPlan) => selected.map((connector) => ({
+    connector,
+    needPlan,
+    query: { ...query, needs: [needPlan.need], sourceTypes: needPlan.sourceTypes, topK: Math.min(query.topK, 8) },
+  })));
+  const settled = await Promise.allSettled(tasks.map((task) => task.connector.search(task.query)));
   settled.forEach((result, index) => {
-    const connector = selected[index];
+    const task = tasks[index];
+    const key = `${task.connector.name}:${task.needPlan.need}`;
     if (result.status === "fulfilled") {
-      const valid = result.value.map((c) => evidenceCandidateSchema.safeParse(c)).filter((p): p is {success:true;data:EvidenceCandidate} => p.success).map((p)=>p.data);
-      resultsByConnector[connector.name] = valid.length; all.push(...valid);
-    } else resultsByConnector[connector.name] = 0;
+      const valid = result.value
+        .map((candidate) => evidenceCandidateSchema.safeParse(candidate))
+        .filter((parsed): parsed is { success: true; data: EvidenceCandidate } => parsed.success)
+        .map((parsed) => parsed.data)
+        .filter((candidate) => task.needPlan.sourceTypes.includes(candidate.sourceType));
+      resultsByConnector[key] = valid.length;
+      all.push(...valid);
+    } else {
+      resultsByConnector[key] = 0;
+    }
   });
   const deduped = deduplicateCandidates(all);
   const rankedAll = rankCandidates(deduped, query);
@@ -38,7 +54,7 @@ export async function retrieveEvidenceDetailed(input: RetrievalQuery, options: {
     candidates: ranked,
     diagnostics: {
       query: query.query, queryLanguage: query.queryLanguage, needs: query.needs,
-      sourcePlan: planRetrieval(query), selectedConnectors: selected.map(c=>c.name), resultsByConnector,
+      sourcePlan: plan, selectedConnectors: selected.map(c=>c.name), resultsByConnector,
       rawCount: all.length, deduplicatedCount: deduped.length, finalCount: ranked.length,
       candidates: rankedAll.map(c=>({id:c.id,sourceName:c.sourceName,sourceType:c.sourceType,text:c.text,locator:c.locator,url:c.url,grading:c.grading,score:c.score,retrievalMethod:c.retrievalMethod,decision:kept.has(c.id)?"kept":"rejected",reason:kept.has(c.id)?"selected":""+rejectedReason(c)}))
     }
