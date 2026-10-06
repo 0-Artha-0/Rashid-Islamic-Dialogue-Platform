@@ -11,10 +11,10 @@ export function HeroHeader() {
         <Image
           src="/brand/rashid-logo.svg"
           alt="راشد | RASHID"
-          width={150}
-          height={84}
+          width={180}
+          height={101}
           priority
-          className="h-16 sm:h-[76px] md:h-[84px] w-auto object-contain drop-shadow-sm"
+          className="h-[76px] sm:h-[88px] md:h-[96px] w-auto object-contain drop-shadow-sm"
         />
       </div>
 
