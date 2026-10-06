@@ -20,7 +20,12 @@
     "test:planner": "tsx scripts/test-planner.ts",
     "test:writer": "tsx scripts/test-writer.ts",
     "test:final-pipeline": "tsx scripts/test-final-pipeline.ts",
-    "test:pipeline:live": "node --env-file=.env.local --import tsx scripts/test-pipeline-live.ts"
+    "test:pipeline:live": "node --env-file=.env.local --import tsx scripts/test-pipeline-live.ts",
+    "inspect:corpus": "node --import tsx scripts/inspect-dorar.ts",
+    "build:corpus": "node --import tsx scripts/build-corpus.ts",
+    "validate:corpus": "node --import tsx scripts/validate-corpus.ts",
+    "audit:corpus": "node --import tsx scripts/audit-corpus.ts",
+    "test:local-corpus": "node --import tsx scripts/test-local-corpus.ts"
   },
   "dependencies": {
     "@google/genai": "2.24.0",

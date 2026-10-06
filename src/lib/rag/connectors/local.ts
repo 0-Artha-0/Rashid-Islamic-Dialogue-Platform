@@ -44,7 +44,9 @@ export class LocalCorpusConnector implements RetrievalConnector {
         sourceName: String(chunk.metadata.sourceName ?? chunk.sourceId),
         text: chunk.text,
         language: chunk.language,
-        locator: chunk.locator,
+        locator: typeof chunk.metadata.grading === "string"
+          ? `${chunk.locator} | grading=${chunk.metadata.grading}`
+          : chunk.locator,
         url: chunk.url,
         score: scores[index] > 0 ? scores[index] + languageBoost(chunk.language, query) : 0,
         retrievalMethod: "keyword" as const,

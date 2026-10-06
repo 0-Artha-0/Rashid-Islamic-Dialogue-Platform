@@ -47,8 +47,9 @@ cannot prove provider, database or real-source connectivity. `test:router`,
 `test:dialogue`, `test:db` and `test:mcp` provide separate live checks.
 
 `RASHID_LOCAL_CORPUS_PATH` selects a real approved chunk file. The default path is
-`data/processed/dorar-hadith-chunks.jsonl`. The tracked default file is currently
-empty. Keep MCP enabled (`RASHID_DISABLE_MCP` unset or false) for live retrieval,
+`data/processed/dorar-hadith-chunks.jsonl`. The tracked default file contains 2,000 Dorar hadith chunks.
+Run `npm run validate:corpus` and `npm run test:local-corpus` to check local data.
+Keep MCP enabled (`RASHID_DISABLE_MCP` unset or false) for complementary live retrieval,
 or use your existing approved corpus path. Do not select data/mock files as
 religious evidence. A run relying on MCP does not validate local corpus ingestion.
 A connector can fail while another succeeds: inspect resultsByConnector rather
