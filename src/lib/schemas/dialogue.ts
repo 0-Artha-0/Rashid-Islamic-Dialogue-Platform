@@ -29,7 +29,7 @@ export const dialogueStateSchema = z.object({
   openPointIds: z.array(idSchema).default([]),
   disputedPointIds: z.array(idSchema).default([]),
   evidenceUsed: z.array(idSchema).default([]),
-  verifiedEvidence: z.array(evidenceItemSchema).default([]),
+  verifiedEvidence: z.array(evidenceItemSchema).optional(),
 });
 
 export type DialoguePoint = z.infer<typeof dialoguePointSchema>;
