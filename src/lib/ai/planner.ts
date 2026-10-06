@@ -85,10 +85,33 @@ function validatePlan(input: PlanDialogueInput, value: unknown): DialoguePlan {
   const requiredEvidenceIds = plan.focusClaimIds.flatMap((claimId) =>
     verificationByClaim.get(claimId)?.evidenceIds ?? []
   );
-  const normalizedPlan = {
+  let normalizedPlan = {
     ...plan,
     focusEvidenceIds: [...new Set([...plan.focusEvidenceIds, ...requiredEvidenceIds])],
   };
+
+  // For explanatory answers, avoid collapsing a multi-source EvidencePack into
+  // Quran-only prose when independently verified Hadith/Tafsir evidence exists.
+  if (input.router.route === "EXPLAIN") {
+    const sourceTypeByEvidence = new Map(input.evidencePack.evidence.map((item) => [item.id, item.sourceType]));
+    const supported = input.claims
+      .map((claim) => ({ claim, verification: verificationByClaim.get(claim.id) }))
+      .filter((item) => item.verification && item.verification.status !== "UNSUPPORTED");
+    const preferredTypes = ["quran", "hadith", "tafsir"] as const;
+    const extraClaimIds: string[] = [];
+    for (const type of preferredTypes) {
+      const match = supported.find(({ verification }) =>
+        verification!.evidenceIds.some((id) => sourceTypeByEvidence.get(id) === type)
+      );
+      if (match && !normalizedPlan.focusClaimIds.includes(match.claim.id)) extraClaimIds.push(match.claim.id);
+    }
+    const focusClaimIds = [...new Set([...normalizedPlan.focusClaimIds, ...extraClaimIds])].slice(0, 4);
+    const focusEvidenceIds = [...new Set([
+      ...normalizedPlan.focusEvidenceIds,
+      ...focusClaimIds.flatMap((claimId) => verificationByClaim.get(claimId)?.evidenceIds ?? []),
+    ])];
+    normalizedPlan = { ...normalizedPlan, focusClaimIds, focusEvidenceIds };
+  }
   for (const evidenceId of normalizedPlan.focusEvidenceIds) {
     if (!evidence.has(evidenceId)) throw new Error(`Verified evidence ${evidenceId} is missing from the EvidencePack.`);
   }
