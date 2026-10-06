@@ -218,8 +218,14 @@ export async function handleChatRequest(
 
     const cacheCanAnswer = claims.length > 0 && verifications.some((item) => item.status !== "UNSUPPORTED");
     if (!cacheCanAnswer) {
-      const planned = await planSearchQueries({ message: input.message, router, dialogueState: previousState });
-      const searches = planned.length ? planned : router.needs.map((need) => ({ need, query: input.message }));
+      let planned: Awaited<ReturnType<typeof planSearchQueries>> = [];
+      try {
+        planned = await planSearchQueries({ message: input.message, router, dialogueState: previousState });
+      } catch (error) {
+        console.warn("[RASHID retrieval-planner] falling back to concept query", error);
+      }
+      const conceptQuery = router.conceptIds.length ? router.conceptIds.join(" ") : input.message.slice(0, 180);
+      const searches = planned.length ? planned : router.needs.map((need) => ({ need, query: `${conceptQuery} ${need}` }));
       const batches = await Promise.all(searches.map(({ need, query }) =>
         deps.retrieveEvidence({ ...retrievalQuery, query, needs: [need] })
       ));
