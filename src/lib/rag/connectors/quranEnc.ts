@@ -5,7 +5,11 @@ import type { RetrievalConnector } from "@/lib/rag/types";
 const BASE="https://quranenc.com/api/v1";
 const hash=(v:string)=>crypto.createHash("sha256").update(v).digest("hex").slice(0,24);
 function refs(text:string){const out:{sura:number;aya:number}[]=[];for(const m of text.matchAll(/(?:quran:)?\s*(\d{1,3})\s*[:\/]\s*(\d{1,3})/gi)){const s=Number(m[1]),a=Number(m[2]);if(s>=1&&s<=114&&a>=1)out.push({sura:s,aya:a})}return out}
-async function translationKey(language:string){const lang=language.split("-")[0].toLowerCase();const r=await fetch(`${BASE}/translations/list/${encodeURIComponent(lang)}?localization=${encodeURIComponent(lang)}`,{signal:AbortSignal.timeout(7000)});if(!r.ok)return null;const j:any=await r.json();const list=Array.isArray(j)?j:Array.isArray(j?.translations)?j.translations:[];return list[0]?.key??null}
+async function translationKey(language:string){const lang=language.split("-")[0].toLowerCase();
+ // QuranEnc exposes the Arabic simplified tafsir under this stable public key.
+ // Using it directly also avoids locale-list inconsistencies for Arabic.
+ if(lang==="ar") return "arabic_moyassar";
+ const r=await fetch(`${BASE}/translations/list/${encodeURIComponent(lang)}?localization=${encodeURIComponent(lang)}`,{signal:AbortSignal.timeout(7000)});if(!r.ok)return null;const j:any=await r.json();const list=Array.isArray(j)?j:Array.isArray(j?.translations)?j.translations:[];return list[0]?.key??null}
 export class QuranEncConnector implements RetrievalConnector{
  readonly name="quranenc-api";
  async search(query:RetrievalQuery):Promise<EvidenceCandidate[]>{
