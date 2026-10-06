@@ -24,6 +24,7 @@ export function NewDialogueView() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [turns, setTurns] = useState<DialogueTurn[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const [thinkingStep, setThinkingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
@@ -99,6 +100,7 @@ export function NewDialogueView() {
     const trimmed = message.trim();
     if (!trimmed || isSending || !sessionId || !userProfile) return;
     setIsSending(true);
+    setPendingQuestion(trimmed);
     setError(null);
     setMessage("");
     try {
@@ -117,8 +119,10 @@ export function NewDialogueView() {
       if (!chat.ok) throw new Error(body?.error ?? "Unable to complete the dialogue.");
       const parsed = structuredResponseSchema.parse(body);
       setTurns((current) => [...current, { question: trimmed, response: parsed }]);
+      setPendingQuestion(null);
     } catch (cause) {
       setMessage(trimmed);
+      setPendingQuestion(null);
       setError(cause instanceof Error ? cause.message : "Unable to complete the dialogue.");
     } finally {
       setIsSending(false);
@@ -128,7 +132,7 @@ export function NewDialogueView() {
   if (turns.length > 0) {
     return (
       <div className="min-h-screen">
-        <MainDialogueView turns={turns} />
+        <MainDialogueView turns={turns} pendingQuestion={pendingQuestion} />
         <div ref={endRef} />
         <div dir={locale === "en" ? "ltr" : "rtl"} className="fixed bottom-4 left-1/2 z-50 w-[min(92vw,680px)] -translate-x-1/2">
           {isSending && (
