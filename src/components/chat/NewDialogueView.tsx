@@ -9,6 +9,7 @@ import { MainDialogueView, type DialogueTurn } from "@/components/chat/MainDialo
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { useSession } from "@/components/session/SessionProvider";
 import { structuredResponseSchema } from "@/lib/schemas/response";
+import type { ConversationTurn } from "@/lib/schemas/conversation";
 
 const examplePrompts = [
   "ما معنى التوحيد؟",
@@ -29,9 +30,36 @@ export function NewDialogueView() {
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const initial = new URLSearchParams(window.location.search).get("q");
+    const params = new URLSearchParams(window.location.search);
+    const initial = params.get("q");
     if (initial) setMessage((current) => current || initial);
-  }, []);
+
+    const existingConversationId = params.get("conversationId");
+    if (!existingConversationId) return;
+    setConversationId(existingConversationId);
+
+    fetch(`/api/conversations?id=${encodeURIComponent(existingConversationId)}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Unable to restore conversation.");
+        return res.json() as Promise<{ turns?: ConversationTurn[] }>;
+      })
+      .then((data) => {
+        const stored = Array.isArray(data.turns) ? data.turns : [];
+        const restored: DialogueTurn[] = [];
+        for (let index = 0; index < stored.length; index += 1) {
+          const userTurn = stored[index];
+          if (userTurn?.role !== "user") continue;
+          const assistantTurn = stored.slice(index + 1).find((turn) => turn.role === "assistant");
+          restored.push({
+            question: userTurn.content,
+            answerText: assistantTurn?.content ?? (locale === "ar" ? "لم يكتمل الرد السابق." : "The previous answer was not completed."),
+          });
+          if (assistantTurn) index = stored.indexOf(assistantTurn);
+        }
+        setTurns(restored);
+      })
+      .catch((cause) => setError(cause instanceof Error ? cause.message : "Unable to restore conversation."));
+  }, [locale]);
 
   useEffect(() => {
     if (!isSending) {
