@@ -179,7 +179,7 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
         <header className="shrink-0 border-b border-[#d8bd91]/50 bg-[#fffaf0]/75 px-4 py-3 backdrop-blur sm:px-8">
           <div className="mx-auto flex max-w-[820px] items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Image src="/brand/rashid-logo.svg" alt="Rashid" width={34} height={34} className="h-8 w-8" />
+              <Image src="/brand/rashid-rosette.png" alt="Rashid" width={34} height={34} className="h-8 w-8" />
               <div>
                 <h1 className="text-[14px] font-bold text-[#365f4f]">{locale === "ar" ? "حوار راشد" : "Rashid Dialogue"}</h1>
                 <p className="text-[9px] text-[#73837b]">{locale === "ar" ? "حوار موثّق خطوة بخطوة" : "A sourced dialogue, step by step"}</p>
@@ -209,7 +209,7 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
 
                 <div className="flex items-start justify-start gap-2.5">
                   <div className="mt-1 shrink-0 rounded-full border border-[#d8bd91] bg-[#fffaf0] p-1 shadow-sm">
-                    <Image src="/brand/rashid-logo.svg" alt="" width={30} height={30} className="h-7 w-7" />
+                    <Image src="/brand/rashid-rosette.png" alt="" width={30} height={30} className="h-7 w-7" />
                   </div>
                   <div className="max-w-[82%] rounded-[18px_18px_18px_5px] border border-[#e4c9c2] bg-[#fff8f4]/95 px-4 py-3 shadow-sm">
                     <p className="mb-1 text-[9px] font-semibold text-[#a06f63]">{locale === "ar" ? "راشد" : "Rashid"}</p>
