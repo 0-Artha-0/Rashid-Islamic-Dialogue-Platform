@@ -9,19 +9,32 @@ import { SearchInputBar } from "./SearchInputBar";
 import { FeatureCardsGrid } from "./FeatureCardsGrid";
 import { SuggestionChips } from "./SuggestionChips";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useRouter } from "next/navigation";
 
 export function HomeView() {
   const { locale, t } = useLocale();
+  const router = useRouter();
   const handleSearchSubmit = (query: string) => {
-    console.log("Submitted query:", query);
+    void query;
+    router.push("/new-dialogue");
   };
 
   const handleSelectFeature = (id: string) => {
-    console.log("Selected feature:", id);
+    const destinations: Record<string, string> = {
+      answers: "/new-dialogue",
+      perspectives: "/conversations/demo/compare-views",
+      map: "/conversations/demo/discussion-map",
+      debate: "/conversations/demo/debate",
+      misconception: "/misconceptions",
+      referral: "/conversations/demo/referral",
+    };
+    const destination = destinations[id];
+    if (destination) router.push(destination);
   };
 
   const handleSelectSuggestion = (suggestion: string) => {
-    console.log("Selected suggestion:", suggestion);
+    void suggestion;
+    router.push("/new-dialogue");
   };
 
   return (

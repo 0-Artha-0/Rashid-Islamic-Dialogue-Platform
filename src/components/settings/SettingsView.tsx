@@ -21,13 +21,13 @@ export function SettingsView() {
           <h1 className="text-[20px] font-bold leading-[1.3]">{locale === "en" ? "Settings" : "الإعدادات"}</h1>
           <p className="mt-1 text-[10px] leading-4 text-[#65796f]">{locale === "en" ? "Preferences for this session only" : "تفضيلات هذه الجلسة فقط"}</p>
           <div className="mt-3 w-full space-y-1.5">
-            <button type="button" aria-pressed={locale === "en"} onClick={() => setLocale(locale === "ar" ? "en" : "ar")} className="flex w-full items-center justify-between rounded-[10px] border border-[#cbd9cf] bg-[#e7efe8]/90 px-3 py-2 text-right text-[10px]">
+            <button type="button" aria-pressed={locale === "en"} onClick={() => setLocale(locale === "ar" ? "en" : "ar")} className={`flex w-full items-center justify-between rounded-[10px] border border-[#cbd9cf] bg-[#e7efe8]/90 px-3 py-2 ${locale === "en" ? "text-left" : "text-right"} text-[10px]`}>
               <span className="font-semibold">{locale === "en" ? "Language" : "اللغة"}</span><span className="text-[#65796f]">{locale === "en" ? "English" : "العربية"}</span>
             </button>
-            <button type="button" aria-pressed={notifications} onClick={() => setNotifications((value) => !value)} className="flex w-full items-center justify-between rounded-[10px] border border-[#e4c9c2] bg-[#f4e5e1]/90 px-3 py-2 text-right text-[10px]">
+            <button type="button" aria-pressed={notifications} onClick={() => setNotifications((value) => !value)} className={`flex w-full items-center justify-between rounded-[10px] border border-[#e4c9c2] bg-[#f4e5e1]/90 px-3 py-2 ${locale === "en" ? "text-left" : "text-right"} text-[10px]`}>
               <span className="font-semibold">{locale === "en" ? "Notifications" : "التنبيهات"}</span><span className="text-[#65796f]">{notifications ? (locale === "en" ? "On" : "مفعلة") : (locale === "en" ? "Off" : "متوقفة")}</span>
             </button>
-            <button type="button" aria-pressed={compact} onClick={() => setCompact((value) => !value)} className="flex w-full items-center justify-between rounded-[10px] border border-[#ddc89f] bg-[#f1e7d2]/90 px-3 py-2 text-right text-[10px]">
+            <button type="button" aria-pressed={compact} onClick={() => setCompact((value) => !value)} className={`flex w-full items-center justify-between rounded-[10px] border border-[#ddc89f] bg-[#f1e7d2]/90 px-3 py-2 ${locale === "en" ? "text-left" : "text-right"} text-[10px]`}>
               <span className="font-semibold">{locale === "en" ? "Compact view" : "عرض مختصر"}</span><span className="text-[#65796f]">{compact ? (locale === "en" ? "On" : "مفعل") : (locale === "en" ? "Off" : "متوقف")}</span>
             </button>
           </div>

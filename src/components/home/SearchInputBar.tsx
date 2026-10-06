@@ -68,7 +68,7 @@ export function SearchInputBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="flex-1 bg-transparent border-0 px-3 text-xs sm:text-sm text-[#18342e] placeholder-[#768e85] focus:outline-none focus:ring-0 text-right font-normal"
+          className={`flex-1 bg-transparent border-0 px-3 text-xs sm:text-sm text-[#18342e] placeholder-[#768e85] focus:outline-none focus:ring-0 ${locale === "en" ? "text-left" : "text-right"} font-normal`}
           dir={locale === "en" ? "ltr" : "rtl"}
         />
 

@@ -74,7 +74,7 @@ function SuggestedActions({ actions }: { actions: StructuredResponse["suggestedA
             {displayAction(action)}
           </Link>
         ) : (
-          <button key={action} type="button" className="rounded-full border border-[#d8bd91] bg-[#fffdf8]/65 px-2.5 py-1 text-[9px] leading-3.5 text-[#365f4f]">
+          <button key={action} type="button" disabled className="cursor-not-allowed rounded-full border border-[#d8bd91] bg-[#fffdf8]/65 px-2.5 py-1 text-[9px] leading-3.5 text-[#8a9991]">
             {displayAction(action)}
           </button>
         )

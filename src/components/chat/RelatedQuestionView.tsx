@@ -37,7 +37,7 @@ export function RelatedQuestionView() {
               onChange={(event) => setQuestion(event.target.value)}
               placeholder="اكتب سؤالك المرتبط بالحوار..."
               rows={2}
-              className="block min-h-[58px] w-full resize-none rounded-[10px] border border-[#d8bd91] bg-[#e7efe8]/90 px-3 py-2 text-right text-[11px] leading-[1.45] text-[#344f46] placeholder-[#65796f] focus:outline-none focus:ring-2 focus:ring-[#365f4f]/20"
+              className={`block min-h-[58px] w-full resize-none rounded-[10px] border border-[#d8bd91] bg-[#e7efe8]/90 px-3 py-2 ${locale === "en" ? "text-left" : "text-right"} text-[11px] leading-[1.45] text-[#344f46] placeholder-[#65796f] focus:outline-none focus:ring-2 focus:ring-[#365f4f]/20`}
               dir={locale === "en" ? "ltr" : "rtl"}
             />
           </label>
@@ -51,7 +51,9 @@ export function RelatedQuestionView() {
             </Link>
             <button
               type="button"
-              className="inline-flex h-8 items-center justify-center rounded-[9px] bg-[#365f4f] px-3 text-[10px] font-semibold leading-4 text-white transition-colors hover:bg-[#2d5143] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#365f4f] focus-visible:ring-offset-2"
+              disabled
+              aria-label={locale === "en" ? "Send related question unavailable" : "إرسال السؤال المرتبط غير متاح"}
+              className="inline-flex h-8 cursor-not-allowed items-center justify-center rounded-[9px] bg-[#8a9991] px-3 text-[10px] font-semibold leading-4 text-white"
             >
               إرسال
             </button>

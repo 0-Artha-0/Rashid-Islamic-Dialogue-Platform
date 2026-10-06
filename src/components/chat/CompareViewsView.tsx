@@ -112,7 +112,7 @@ export function CompareViewsView({ response }: CompareViewsViewProps) {
             <div className="flex flex-wrap items-center justify-center gap-1" dir={locale === "en" ? "ltr" : "rtl"}>
               {response.suggestedActions.map((action) => (
                 action === "عرض أدلة كل رأي" || action === "العودة للنقاش" || action === "سؤال متابعة" ? (
-                  <Link key={action} href={action === "عرض أدلة كل رأي" ? "/conversations/demo/evidence" : action === "العودة للنقاش" ? "/conversations/demo/debate" : "/conversations/demo/related-question"} className="rounded-full border border-[#d8bd91] bg-[#fffdf8]/65 px-2.5 py-1 text-[9px] leading-3.5 text-[#365f4f]">
+                  <Link key={action} href={action === "عرض أدلة كل رأي" ? "/conversations/demo/evidence" : action === "العودة للنقاش" ? "/conversations/demo" : "/conversations/demo/related-question"} className="rounded-full border border-[#d8bd91] bg-[#fffdf8]/65 px-2.5 py-1 text-[9px] leading-3.5 text-[#365f4f]">
                     {locale === "en" ? ({ "عرض أدلة كل رأي": "View Evidence for Each View", "العودة للنقاش": "Return to Discussion", "سؤال متابعة": "Related Question" } as Record<string, string>)[action] : action}
                   </Link>
                 ) : (

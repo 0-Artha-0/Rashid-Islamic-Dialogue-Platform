@@ -119,7 +119,6 @@ export function DebateModeView({ response }: DebateModeViewProps) {
             </div>
           )}
 
-          <Link href="/conversations/demo" className="mt-1 inline-flex h-9 items-center justify-center rounded-[10px] border border-[#d8bd91] bg-[#fffdf8]/65 px-4 text-[11px] font-medium leading-4 text-[#365f4f]">{l.back}</Link>
         </section>
       </main>
     </div>

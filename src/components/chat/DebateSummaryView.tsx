@@ -86,11 +86,12 @@ export function DebateSummaryView({ response }: DebateSummaryViewProps) {
             <div className="flex flex-wrap items-center justify-center gap-1" dir={locale === "en" ? "ltr" : "rtl"}>
               <Link href="/conversations/demo/evidence" className="rounded-full border border-[#d8bd91] bg-[#fffdf8]/65 px-2.5 py-1 text-[9px] leading-3.5 text-[#365f4f]">{l.viewEvidence}</Link>
               {response.suggestedActions.map((action) => {
+                if (action === "عرض أدلة كل رأي") return null;
                 const displayAction = locale === "en" ? ({ "عرض أدلة كل رأي": "View Evidence for Each View", "العودة للنقاش": "Return to Discussion" } as Record<string, string>)[action] ?? action : action;
                 const destination = action === "عرض أدلة كل رأي"
                   ? "/conversations/demo/evidence"
                   : action === "العودة للنقاش"
-                    ? "/conversations/demo/debate"
+                    ? "/conversations/demo"
                     : action === "سؤال متابعة"
                       ? "/conversations/demo/related-question"
                     : null;
