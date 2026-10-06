@@ -50,7 +50,8 @@ export class LocalCorpusConnector implements RetrievalConnector {
         url: chunk.url,
         score: scores[index] > 0 ? scores[index] + languageBoost(chunk.language, query) : 0,
         retrievalMethod: "keyword" as const,
-        conceptIds: chunk.conceptIds
+        conceptIds: chunk.conceptIds,
+        grading: typeof chunk.metadata.grading === "string" ? chunk.metadata.grading : undefined
       }))
       .filter((candidate) => candidate.score > 0)
       .sort((a, b) => b.score - a.score)
