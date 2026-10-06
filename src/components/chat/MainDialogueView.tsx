@@ -9,7 +9,8 @@ import type { EvidenceItem } from "@/lib/schemas/evidence";
 
 export type DialogueTurn = {
   question: string;
-  response: StructuredResponse;
+  response?: StructuredResponse;
+  answerText?: string;
 };
 
 function sourceLabel(citation: EvidenceItem, locale: "ar" | "en") {
@@ -106,11 +107,14 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
   const { locale } = useLocale();
   const [drawer, setDrawer] = useState<"sources" | "map" | null>(null);
   const [selectedCitation, setSelectedCitation] = useState<EvidenceItem | null>(null);
-  const latest = turns[turns.length - 1]?.response;
+  const latest = [...turns].reverse().find((turn) => turn.response)?.response;
 
   const allCitations = useMemo(() => {
     const seen = new Map<string, EvidenceItem>();
-    for (const turn of turns) for (const citation of turn.response.citations) seen.set(citation.id, citation);
+    for (const turn of turns) {
+      if (!turn.response) continue;
+      for (const citation of turn.response.citations) seen.set(citation.id, citation);
+    }
     return [...seen.values()];
   }, [turns]);
 
@@ -166,7 +170,7 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
         <div className="flex-1 overflow-y-auto px-4 pb-28 pt-5 sm:px-8">
           <div className="mx-auto flex w-full max-w-[820px] flex-col gap-6">
             {turns.map((turn, turnIndex) => (
-              <section key={turn.response.responseId} className="space-y-3">
+              <section key={turn.response?.responseId ?? `restored-${turnIndex}`} className="space-y-3">
                 <div className="flex justify-end">
                   <div className="max-w-[78%] rounded-[18px_18px_5px_18px] border border-[#c8d8ce] bg-[#e7efe8]/95 px-4 py-3 shadow-sm">
                     <p className="mb-1 text-[9px] font-semibold text-[#71877c]">{locale === "ar" ? "أنت" : "You"}</p>
@@ -180,15 +184,19 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
                   </div>
                   <div className="max-w-[82%] rounded-[18px_18px_18px_5px] border border-[#e4c9c2] bg-[#fff8f4]/95 px-4 py-3 shadow-sm">
                     <p className="mb-1 text-[9px] font-semibold text-[#a06f63]">{locale === "ar" ? "راشد" : "Rashid"}</p>
-                    {turn.response.status === "ok" ? (
-                      <InlineAnswer response={turn.response} onCitation={openCitation} />
+                    {turn.response ? (
+                      turn.response.status === "ok" ? (
+                        <InlineAnswer response={turn.response} onCitation={openCitation} />
+                      ) : (
+                        <p className="text-[13px] leading-7 text-[#2f5045]">{turn.response.message}</p>
+                      )
                     ) : (
-                      <p className="text-[13px] leading-7 text-[#2f5045]">{turn.response.message}</p>
+                      <p className="text-[13px] leading-7 text-[#2f5045]">{turn.answerText}</p>
                     )}
-                    {turn.response.status === "ok" && turn.response.citations.length > 0 && (
+                    {turn.response?.status === "ok" && turn.response.citations.length > 0 && (
                       <button
                         type="button"
-                        onClick={() => { setDrawer("sources"); setSelectedCitation(turn.response.citations[0]); }}
+                        onClick={() => { setDrawer("sources"); setSelectedCitation(turn.response?.citations[0] ?? null); }}
                         className="mt-3 text-[10px] font-semibold text-[#9c7650] hover:underline"
                       >
                         {locale === "ar" ? "عرض المصادر المستخدمة" : "View used sources"}
@@ -206,58 +214,78 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
       </main>
 
       {drawer && latest && (
-        <div className="fixed inset-0 z-[70] bg-black/10 backdrop-blur-[1px]" onClick={() => setDrawer(null)}>
-          <aside
-            onClick={(event) => event.stopPropagation()}
-            className={`absolute top-0 h-full w-[min(92vw,390px)] overflow-y-auto border-[#d8bd91] bg-[#fffaf0]/98 p-5 shadow-2xl ${locale === "ar" ? "left-0 border-r" : "right-0 border-l"}`}
-          >
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-[15px] font-bold text-[#365f4f]">
-                {drawer === "map" ? (locale === "ar" ? "خريطة الحوار" : "Dialogue map") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}
-              </h2>
-              <button type="button" onClick={() => setDrawer(null)} className="rounded-full border border-[#d8bd91] px-2.5 py-1 text-[11px]">×</button>
-            </div>
+        <aside
+          className="relative z-20 hidden h-screen w-[360px] shrink-0 overflow-y-auto border-r border-[#d8bd91] bg-[#fffaf0] p-5 shadow-[-10px_0_30px_rgba(64,84,72,0.08)] lg:block"
+        >
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="text-[15px] font-bold text-[#365f4f]">
+              {drawer === "map" ? (locale === "ar" ? "خريطة الحوار" : "Dialogue map") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}
+            </h2>
+            <button type="button" onClick={() => setDrawer(null)} className="rounded-full border border-[#d8bd91] bg-white px-2.5 py-1 text-[11px]">×</button>
+          </div>
 
-            {drawer === "map" ? (
+          {drawer === "map" ? (
+            <div className="rounded-[16px] border border-[#e4c9c2] bg-white p-4 shadow-sm">
               <MapMini response={latest} />
-            ) : selectedCitation ? (
-              <div>
-                <div className="rounded-[14px] border border-[#cbd9cf] bg-[#eef4ef] p-4">
-                  <p className="text-[12px] font-bold text-[#365f4f]">{sourceLabel(selectedCitation, locale)}</p>
-                  <p className="mt-1 text-[10px] text-[#71877c]">{sourceLocator(selectedCitation)}</p>
-                  <p
-                    className="mt-3 whitespace-pre-wrap text-[14px] leading-8 text-[#2f5045]"
-                    style={selectedCitation.sourceType === "quran" ? { fontFamily: '"Noto Naskh Arabic", "Traditional Arabic", "Times New Roman", serif' } : undefined}
-                  >
-                    {selectedCitation.text}
-                  </p>
-                  {selectedCitation.url && (
-                    <a href={selectedCitation.url} target="_blank" rel="noreferrer" className="mt-3 inline-block text-[10px] font-semibold text-[#9c7650] hover:underline">
-                      {locale === "ar" ? "فتح المصدر الأصلي" : "Open original source"}
-                    </a>
-                  )}
-                </div>
-                <button type="button" onClick={() => setSelectedCitation(null)} className="mt-3 text-[10px] font-semibold text-[#365f4f] hover:underline">
-                  {locale === "ar" ? "عرض كل المصادر" : "View all sources"}
+            </div>
+          ) : selectedCitation ? (
+            <div>
+              <div className="rounded-[14px] border border-[#cbd9cf] bg-white p-4 shadow-sm">
+                <p className="text-[12px] font-bold text-[#365f4f]">{sourceLabel(selectedCitation, locale)}</p>
+                <p className="mt-1 text-[10px] text-[#71877c]">{sourceLocator(selectedCitation)}</p>
+                <p
+                  className="mt-3 whitespace-pre-wrap text-[14px] leading-8 text-[#2f5045]"
+                  style={selectedCitation.sourceType === "quran" ? { fontFamily: '"Noto Naskh Arabic", "Traditional Arabic", "Times New Roman", serif' } : undefined}
+                >
+                  {selectedCitation.text}
+                </p>
+                {selectedCitation.url && (
+                  <a href={selectedCitation.url} target="_blank" rel="noreferrer" className="mt-3 inline-block text-[10px] font-semibold text-[#9c7650] hover:underline">
+                    {locale === "ar" ? "فتح المصدر الأصلي" : "Open original source"}
+                  </a>
+                )}
+              </div>
+              <button type="button" onClick={() => setSelectedCitation(null)} className="mt-3 text-[10px] font-semibold text-[#365f4f] hover:underline">
+                {locale === "ar" ? "عرض كل المصادر" : "View all sources"}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {allCitations.length === 0 && <p className="text-[12px] text-[#71877c]">{locale === "ar" ? "لا توجد مصادر معروضة لهذه المحادثة بعد." : "No sources yet."}</p>}
+              {allCitations.map((citation, index) => (
+                <button key={citation.id} type="button" onClick={() => setSelectedCitation(citation)} className="w-full rounded-[12px] border border-[#cbd9cf] bg-white p-3 text-start shadow-sm hover:bg-[#f8fbf8]">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold text-[#365f4f]">[{index + 1}] {sourceLabel(citation, locale)}</span>
+                    <span className="text-[9px] text-[#71877c]">{sourceLocator(citation)}</span>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-[10px] leading-5 text-[#52675e]">{citation.text}</p>
                 </button>
+              ))}
+            </div>
+          )}
+        </aside>
+      )}
+
+      {drawer && latest && (
+        <div className="fixed inset-0 z-[70] bg-black/20 lg:hidden" onClick={() => setDrawer(null)}>
+          <aside onClick={(event) => event.stopPropagation()} className="absolute left-0 top-0 h-full w-[88vw] max-w-[360px] overflow-y-auto bg-[#fffaf0] p-5 shadow-2xl">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-[15px] font-bold">{drawer === "map" ? (locale === "ar" ? "خريطة الحوار" : "Dialogue map") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}</h2>
+              <button type="button" onClick={() => setDrawer(null)} className="rounded-full border border-[#d8bd91] bg-white px-2.5 py-1 text-[11px]">×</button>
+            </div>
+            {drawer === "map" ? <MapMini response={latest} /> : selectedCitation ? (
+              <div className="rounded-[14px] border border-[#cbd9cf] bg-white p-4">
+                <p className="text-[12px] font-bold">{sourceLabel(selectedCitation, locale)}</p>
+                <p className="mt-1 text-[10px] text-[#71877c]">{sourceLocator(selectedCitation)}</p>
+                <p className="mt-3 whitespace-pre-wrap text-[14px] leading-8">{selectedCitation.text}</p>
               </div>
             ) : (
-              <div className="space-y-2">
-                {allCitations.length === 0 && <p className="text-[12px] text-[#71877c]">{locale === "ar" ? "لا توجد مصادر معروضة لهذه المحادثة بعد." : "No sources yet."}</p>}
-                {allCitations.map((citation, index) => (
-                  <button key={citation.id} type="button" onClick={() => setSelectedCitation(citation)} className="w-full rounded-[12px] border border-[#cbd9cf] bg-[#eef4ef] p-3 text-start hover:bg-white">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-bold text-[#365f4f]">[{index + 1}] {sourceLabel(citation, locale)}</span>
-                      <span className="text-[9px] text-[#71877c]">{sourceLocator(citation)}</span>
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-[10px] leading-5 text-[#52675e]">{citation.text}</p>
-                  </button>
-                ))}
-              </div>
+              <div className="space-y-2">{allCitations.map((citation,index)=><button key={citation.id} onClick={()=>setSelectedCitation(citation)} className="w-full rounded-[12px] border border-[#cbd9cf] bg-white p-3 text-start"><span className="text-[11px] font-bold">[{index+1}] {sourceLabel(citation, locale)}</span></button>)}</div>
             )}
           </aside>
         </div>
       )}
+
     </div>
   );
 }
