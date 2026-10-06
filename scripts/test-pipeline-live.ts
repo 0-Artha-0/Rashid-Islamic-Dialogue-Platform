@@ -76,12 +76,16 @@ async function main() {
       retrieveEvidence: async (input: Parameters<typeof retrieveEvidenceDetailed>[0]) => {
         stage("retrieval:start", input);
         const result = await retrieveEvidenceDetailed(input);
-        stage("retrieval:result", result); return result.candidates;
+        stage("retrieval:result", result);
+        stage("retrieval:content-review", result.diagnostics.candidates);
+        return result.candidates;
       },
       claimGate: { run: async (text: string, pack: Parameters<NonNullable<typeof defaultChatDependencies.claimGate>["run"]>[1]) => {
         stage("claim-gate:start", pack);
         const result = await defaultChatDependencies.claimGate!.run(text, pack);
-        stage("claim-gate:result", result); return result;
+        stage("claim-gate:result", result);
+        stage("claim-gate:readable", { claims: result.claims.map(claim => ({ id: claim.id, text: claim.text })), verifications: result.verifications.map(v => ({ ...v, evidence: pack.evidence.filter(e => v.evidenceIds.includes(e.id)).map(e => ({ id: e.id, sourceName: e.sourceName, sourceType: e.sourceType, text: e.text, locator: e.locator })) })) });
+        return result;
       } },
       finalResponse: async (input: Parameters<typeof generateFinalResponse>[0]) => generateFinalResponse(input, {
         generate: async (prompt, options) => {
