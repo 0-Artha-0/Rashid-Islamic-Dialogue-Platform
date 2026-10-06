@@ -10,9 +10,11 @@ import { buildDiscussionMap } from "@/lib/dialogue/buildDiscussionMap";
 import { buildEvidenceGraph } from "@/lib/dialogue/buildEvidenceGraph";
 import { buildClaims } from "@/lib/ai/claimBuilder";
 import { verifyClaims } from "@/lib/ai/claimEvidenceGate";
+import { generateFinalResponse } from "@/lib/ai/finalPipeline";
 import type { ChatPipelineDependencies } from "./types";
 
 export const defaultChatDependencies: ChatPipelineDependencies = {
+  finalResponse: generateFinalResponse,
   getSession,
   getConversation,
   saveConversationTurn,
