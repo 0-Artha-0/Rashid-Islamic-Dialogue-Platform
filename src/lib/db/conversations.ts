@@ -54,3 +54,16 @@ export async function getConversation(id: string): Promise<Conversation | null> 
 
   return rows.length ? mapConversation(rows[0] as ConversationRow) : null;
 }
+
+
+export async function listConversationsBySession(sessionId: string): Promise<Conversation[]> {
+  const sql = getDatabaseClient();
+  const rows = await sql.query(
+    `SELECT id, session_id, title, primary_topic, created_at, updated_at
+     FROM conversations
+     WHERE session_id = $1
+     ORDER BY updated_at DESC, created_at DESC`,
+    [sessionId],
+  );
+  return rows.map((row) => mapConversation(row as ConversationRow));
+}
