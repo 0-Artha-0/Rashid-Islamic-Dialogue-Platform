@@ -40,6 +40,7 @@ async function main() {
         preferredSourceLanguages: [item.queryLanguage],
         sourceTypes: item.sourceTypes,
         conceptIds: [],
+    needs: [],
         topK: item.topK
       },
       { connectors: [local, mcp] }
