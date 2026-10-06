@@ -220,7 +220,7 @@ function EvidenceGraphCanvas({ turns }: { turns: DialogueTurn[] }) {
 
 export function MainDialogueView({ turns, pendingQuestion = null }: { turns: DialogueTurn[]; pendingQuestion?: string | null }) {
   const { locale } = useLocale();
-  const [drawer, setDrawer] = useState<"sources" | "map" | "graph" | null>(() => turns.some((turn) => turn.response) ? "map" : null);
+  const [drawer, setDrawer] = useState<"sources" | "graph" | null>(() => turns.some((turn) => turn.response) ? "graph" : null);
   const [autoOpenedMap, setAutoOpenedMap] = useState(() => turns.some((turn) => turn.response));
   const [selectedCitation, setSelectedCitation] = useState<EvidenceItem | null>(null);
   const latest = [...turns].reverse().find((turn) => turn.response)?.response;
@@ -236,7 +236,7 @@ export function MainDialogueView({ turns, pendingQuestion = null }: { turns: Dia
 
   useEffect(() => {
     if (!autoOpenedMap && turns.some((turn) => turn.response)) {
-      setDrawer("map");
+      setDrawer("graph");
       setAutoOpenedMap(true);
     }
   }, [autoOpenedMap, turns]);
@@ -254,19 +254,7 @@ export function MainDialogueView({ turns, pendingQuestion = null }: { turns: Dia
 
       <Sidebar
         activeId="new-chat"
-        onNavigate={(id) => {
-          if (id === "discussion-map") {
-            setSelectedCitation(null);
-            setDrawer("map");
-            return true;
-          }
-          if (id === "sources") {
-            setSelectedCitation(null);
-            setDrawer("sources");
-            return true;
-          }
-          return false;
-        }}
+        onNavigate={() => false}
       />
 
       <main className="relative z-10 flex min-h-screen flex-1 flex-col overflow-hidden lg:min-h-0">
@@ -280,11 +268,8 @@ export function MainDialogueView({ turns, pendingQuestion = null }: { turns: Dia
               </div>
             </div>
             <div className="flex items-center gap-1.5">
-              <button type="button" onClick={() => { setDrawer("map"); setSelectedCitation(null); }} className="rounded-full border border-[#d8bd91] bg-white/70 px-3 py-1.5 text-[10px] font-semibold hover:bg-white">
-                {locale === "ar" ? "خريطة الحوار" : "Dialogue map"}
-              </button>
               <button type="button" onClick={() => { setDrawer("graph"); setSelectedCitation(null); }} className="rounded-full border border-[#d8bd91] bg-white/70 px-3 py-1.5 text-[10px] font-semibold hover:bg-white">
-                {locale === "ar" ? "شبكة الأدلة" : "Evidence graph"}
+                {locale === "ar" ? "شبكة الحوار والأدلة" : "Dialogue & evidence graph"}
               </button>
               <button type="button" onClick={() => { setDrawer("sources"); setSelectedCitation(null); }} className="rounded-full border border-[#d8bd91] bg-white/70 px-3 py-1.5 text-[10px] font-semibold hover:bg-white">
                 {locale === "ar" ? `المصادر (${allCitations.length})` : `Sources (${allCitations.length})`}
@@ -359,20 +344,16 @@ export function MainDialogueView({ turns, pendingQuestion = null }: { turns: Dia
 
       {drawer && latest && (
         <aside
-          className={`relative z-20 hidden h-screen shrink-0 overflow-y-auto border-r border-[#d8bd91] bg-[#fffaf0] p-5 shadow-[-10px_0_30px_rgba(64,84,72,0.08)] lg:block ${drawer === "graph" ? "w-[min(52vw,820px)]" : "w-[360px]"}`}
+          className={`relative z-20 hidden h-screen shrink-0 overflow-y-auto border-r border-[#d8bd91] bg-[#fffaf0] p-5 shadow-[-10px_0_30px_rgba(64,84,72,0.08)] lg:block ${drawer === "graph" ? "w-[44vw] min-w-[320px] max-w-[760px] resize-x" : "w-[360px]"}`}
         >
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-[15px] font-bold text-[#365f4f]">
-              {drawer === "map" ? (locale === "ar" ? "خريطة الحوار" : "Dialogue map") : drawer === "graph" ? (locale === "ar" ? "شبكة الحوار والأدلة" : "Dialogue evidence graph") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}
+              {drawer === "graph" ? (locale === "ar" ? "شبكة الحوار والأدلة" : "Dialogue & evidence graph") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}
             </h2>
             <button type="button" onClick={() => setDrawer(null)} className="rounded-full border border-[#d8bd91] bg-white px-2.5 py-1 text-[11px]">×</button>
           </div>
 
-          {drawer === "map" ? (
-            <div className="rounded-[16px] border border-[#e4c9c2] bg-white p-4 shadow-sm">
-              <MapMini response={latest} />
-            </div>
-          ) : drawer === "graph" ? (
+          {drawer === "graph" ? (
             <EvidenceGraphCanvas turns={turns} />
           ) : selectedCitation ? (
             <div>
@@ -416,10 +397,10 @@ export function MainDialogueView({ turns, pendingQuestion = null }: { turns: Dia
         <div className="fixed inset-0 z-[70] bg-black/20 lg:hidden" onClick={() => setDrawer(null)}>
           <aside onClick={(event) => event.stopPropagation()} className="absolute left-0 top-0 h-full w-[88vw] max-w-[360px] overflow-y-auto bg-[#fffaf0] p-5 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-[15px] font-bold">{drawer === "map" ? (locale === "ar" ? "خريطة الحوار" : "Dialogue map") : drawer === "graph" ? (locale === "ar" ? "شبكة الحوار والأدلة" : "Dialogue evidence graph") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}</h2>
+              <h2 className="text-[15px] font-bold">{drawer === "graph" ? (locale === "ar" ? "شبكة الحوار والأدلة" : "Dialogue & evidence graph") : (locale === "ar" ? "المصادر والأدلة" : "Sources & evidence")}</h2>
               <button type="button" onClick={() => setDrawer(null)} className="rounded-full border border-[#d8bd91] bg-white px-2.5 py-1 text-[11px]">×</button>
             </div>
-            {drawer === "map" ? <MapMini response={latest} /> : drawer === "graph" ? <EvidenceGraphCanvas turns={turns} /> : selectedCitation ? (
+            {drawer === "graph" ? <EvidenceGraphCanvas turns={turns} /> : selectedCitation ? (
               <div className="rounded-[14px] border border-[#cbd9cf] bg-white p-4">
                 <p className="text-[12px] font-bold">{sourceLabel(selectedCitation, locale)}</p>
                 <p className="mt-1 text-[10px] text-[#71877c]">{sourceLocator(selectedCitation)}</p>
