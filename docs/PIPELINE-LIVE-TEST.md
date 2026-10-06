@@ -73,3 +73,16 @@ To test HTTP separately, run `npm run dev`, create a session via POST
 `/api/conversations` with `{sessionId: ...}`, then POST `/api/chat` with
 `{sessionId, conversationId, message}`. The live script already checks the
 service behind this endpoint, including database persistence.
+
+## Readable saved results
+
+Every run automatically saves `test-results/pipeline-live.html` (open in Chrome
+or Edge) and `test-results/pipeline-live.json`. The HTML uses UTF-8, RTL layout
+and independent text directions for Arabic/English. It shows each question,
+final answer, expected/actual status, failures, sources and expandable stage data.
+Reports update during the run so completed stages remain available after a failure.
+The next run replaces these files; copy them elsewhere to retain previous runs.
+Reports are ignored by git. Configured Gemini/database secrets and ANSI color
+codes are removed from saved trace values. Avoid sharing private questions.
+Use `--report-dir another-folder` to change the output directory, and `--verbose`
+to restore complete console traces. These flags follow `npm run test:pipeline:live --`.

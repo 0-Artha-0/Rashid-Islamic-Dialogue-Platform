@@ -25,7 +25,8 @@
     "build:corpus": "node --import tsx scripts/build-corpus.ts",
     "validate:corpus": "node --import tsx scripts/validate-corpus.ts",
     "audit:corpus": "node --import tsx scripts/audit-corpus.ts",
-    "test:local-corpus": "node --import tsx scripts/test-local-corpus.ts"
+    "test:local-corpus": "node --import tsx scripts/test-local-corpus.ts",
+    "test:pipeline-report": "node --import tsx scripts/test-pipeline-report.ts"
   },
   "dependencies": {
     "@google/genai": "2.24.0",

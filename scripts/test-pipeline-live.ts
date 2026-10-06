@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { PipelineReport } from "./pipeline-report";
 import fs from "node:fs";
 import path from "node:path";
 import { createSession } from "../src/lib/db/sessions";
@@ -15,8 +16,16 @@ import type { UserProfile } from "../src/lib/schemas/userProfile";
 
 const args = process.argv.slice(2);
 const questionIndex = args.indexOf("--question");
-const trace = (stage: string, data: unknown) => console.log(JSON.stringify({ stage, data }, null, 2));
+const reportIndex = args.indexOf("--report-dir");
+const report = new PipelineReport(reportIndex >= 0 ? args[reportIndex + 1] : undefined,
+  [process.env.GEMINI_API_KEY ?? "", process.env.DATABASE_URL ?? ""]);
+const trace = (stage: string, data: unknown) => {
+  report.record(stage, data);
+  if (args.includes("--verbose")) console.log(JSON.stringify({ stage, data }, null, 2));
+  else console.log(`[${stage}]`);
+};
 async function main() {
+  if (reportIndex >= 0 && !args[reportIndex + 1]) throw new Error("--report-dir requires a directory.");
   for (const key of ["GEMINI_API_KEY", "DATABASE_URL"]) {
     if (!process.env[key]) throw new Error(`${key} is missing in .env.local.`);
   }
@@ -26,7 +35,7 @@ async function main() {
   trace("preflight", { localChunks, mcpEnabled: process.env.RASHID_DISABLE_MCP !== "true", models: process.env.LLM_MODELS ?? "default" });
   if (!localChunks) console.warn("Local corpus is empty/missing. This run relies on the real MCP connector; it does not validate local corpus ingestion.");
   if (!localChunks && process.env.RASHID_DISABLE_MCP === "true") throw new Error("No real evidence source is enabled.");
-  if (args.includes("--check")) return;
+  if (args.includes("--check")) { report.finish("check_complete"); return; }
   const profile: UserProfile = {
     uiLanguage: "ar", preferredResponseLanguage: "ar", goal: "learn_about_islam",
     explanationDepth: "balanced", interests: [],
@@ -47,6 +56,7 @@ async function main() {
   let passed = 0;
   for (const test of tests) {
     console.log(`\n=== ${test.name} ===`);
+    report.startCase(test.name, test.question, test.expected);
     const currentProfile = { ...profile, preferredResponseLanguage: test.language, explanationDepth: test.depth };
     await import("../src/lib/db/sessions").then(m => m.updateSessionProfile(session.id, currentProfile));
     if (!("followUp" in test && test.followUp)) {
@@ -117,6 +127,13 @@ async function main() {
   }
   console.log(`\nLive pipeline: ${passed}/${tests.length} passed. Test sessions and turns remain in the configured database.`);
   console.log("Review the Arabic/English prose, sources and quotations manually; an automatic pass does not certify religious accuracy.");
+  report.finish(passed === tests.length ? "passed" : "failed");
   if (passed !== tests.length) process.exitCode = 1;
 }
-main().catch(error => { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; });
+main().catch(error => {
+  const message = error instanceof Error ? error.message : String(error);
+  report.finish("error", message); console.error(message); process.exitCode = 1;
+}).finally(() => {
+  console.log(`Readable report: ${report.htmlPath}`);
+  console.log(`Structured report: ${report.jsonPath}`);
+});

@@ -30,3 +30,6 @@ pnpm-debug.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Generated local test reports
+/test-results/
