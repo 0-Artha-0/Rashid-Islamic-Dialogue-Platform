@@ -165,7 +165,10 @@ export async function handleChatRequest(
     }
 
     if (router.route === "REFERRAL") {
-      const message = "This question needs referral to a qualified scholar or appropriate specialist rather than a personalized ruling.";
+      const responseLanguage = session.userProfile.preferredResponseLanguage ?? router.queryLanguage;
+      const message = responseLanguage.startsWith("ar")
+        ? "هذا السؤال يحتاج إلى إحالة لعالم مؤهل أو مختص مناسب، ولا ينبغي للنظام إصدار حكم شخصي في هذه الحالة."
+        : "This question needs referral to a qualified scholar or appropriate specialist rather than a personalized ruling.";
       const referral = referralFor(
         router.personalRuling ? "personal_fatwa" : "out_of_scope",
         message,
@@ -193,7 +196,10 @@ export async function handleChatRequest(
     let evidencePack: EvidencePack = deps.buildEvidencePack(retrievalQuery, candidates);
 
     if (!evidencePack.evidence.length) {
-      const message = "I could not find sufficient approved evidence to answer this question safely.";
+      const responseLanguage = session.userProfile.preferredResponseLanguage ?? router.queryLanguage;
+      const message = responseLanguage.startsWith("ar")
+        ? "لم أجد أدلة معتمدة كافية لصياغة جواب موثوق."
+        : "I could not find sufficient approved evidence to answer this question safely.";
       const referral = referralFor("insufficient_evidence", message);
       const result = response({
         conversationId: conversation.id,
@@ -324,6 +330,10 @@ export async function handleChatRequest(
 
     if (error instanceof ChatServiceError) throw error;
     console.error("[RASHID chat] internal pipeline failure", error);
+    const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    if (process.env.NODE_ENV === "test" || process.env.RASHID_PIPELINE_DEBUG === "true") {
+      throw new ChatServiceError(500, `Unable to complete chat request. Cause: ${detail}`);
+    }
     throw new ChatServiceError(500, "Unable to complete chat request.");
   }
 }
