@@ -35,6 +35,7 @@ function buildRetrievalQuery(input: ChatRequest, router: RouterOutput): Retrieva
     preferredSourceLanguages: preferredSourceLanguages(profile, router.queryLanguage),
     conceptIds: router.conceptIds,
     sourceTypes: [],
+    needs: router.needs,
     topK: 8,
   };
 }
@@ -188,8 +189,8 @@ export async function handleChatRequest(
     }
 
     const retrievalQuery = buildRetrievalQuery({ ...input, userProfile: session.userProfile }, router);
-    const candidates = await deps.retrieveEvidence(retrievalQuery);
-    const evidencePack: EvidencePack = deps.buildEvidencePack(retrievalQuery, candidates);
+    let candidates = await deps.retrieveEvidence(retrievalQuery);
+    let evidencePack: EvidencePack = deps.buildEvidencePack(retrievalQuery, candidates);
 
     if (!evidencePack.evidence.length) {
       const message = "I could not find sufficient approved evidence to answer this question safely.";
@@ -220,6 +221,27 @@ export async function handleChatRequest(
       verifications = gate.verifications;
       claims = gate.claims.map((claim) => {
         const verification = gate.verifications.find((item) => item.claimId === claim.id);
+        return { ...claim, status: verification?.status ?? claim.status };
+      });
+    }
+
+    // One bounded, targeted retry. Never loop indefinitely.
+    if (deps.claimGate && verifications.length && !verifications.some(v => v.status !== "UNSUPPORTED")) {
+      const missing = verifications.map(v => v.reason).filter(Boolean).join("; ");
+      const retryQuery: RetrievalQuery = {
+        ...retrievalQuery,
+        query: missing ? `${input.message}\nMissing evidence: ${missing}` : input.message,
+        topK: Math.min(retrievalQuery.topK + 4, 12),
+      };
+      const retryCandidates = await deps.retrieveEvidence(retryQuery);
+      const merged = [...candidates, ...retryCandidates].filter((item, index, all) => all.findIndex(other => other.id === item.id) === index);
+      candidates = merged;
+      evidencePack = deps.buildEvidencePack(retrievalQuery, merged);
+      const candidateText = evidencePack.evidence.map((item) => item.text).join("\n\n");
+      const retryGate = await deps.claimGate.run(candidateText, evidencePack);
+      verifications = retryGate.verifications;
+      claims = retryGate.claims.map((claim) => {
+        const verification = retryGate.verifications.find((item) => item.claimId === claim.id);
         return { ...claim, status: verification?.status ?? claim.status };
       });
     }
