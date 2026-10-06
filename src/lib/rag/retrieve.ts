@@ -1,6 +1,7 @@
 import { evidenceCandidateSchema, retrievalQuerySchema, type EvidenceCandidate, type RetrievalQuery } from "@/lib/schemas/retrieval";
 import { createIslamicContentMcpConnector } from "@/lib/rag/connectors/islamicContentMcp";
 import { createLocalCorpusConnector } from "@/lib/rag/connectors/local";
+import { createApprovedWebConnector } from "@/lib/rag/connectors/approvedWeb";
 import { deduplicateCandidates } from "@/lib/rag/deduplicate";
 import { selectConnectors } from "@/lib/rag/dispatch";
 import { isPrimaryEvidenceEligible, rankCandidates } from "@/lib/rag/rank";
@@ -16,8 +17,9 @@ export async function retrieveEvidenceDetailed(input: RetrievalQuery, options: {
   const query = retrievalQuerySchema.parse(input);
   const local = options.connectors?.find((c) => c.name === "local") ?? createLocalCorpusConnector();
   const mcp = options.connectors?.find((c) => c.name === "islamic-content-mcp") ?? createIslamicContentMcpConnector();
+  const web = options.connectors?.find((c) => c.name === "approved-web") ?? createApprovedWebConnector();
   const plan = planRetrieval(query);
-  const selected = selectConnectors(query, { local, mcp });
+  const selected = selectConnectors(query, { local, mcp, web });
   const resultsByConnector: Record<string, number> = {};
   const all: EvidenceCandidate[] = [];
   // Execute each knowledge need as its own retrieval task. This prevents one
