@@ -24,6 +24,7 @@ export function NewDialogueView() {
   const [response, setResponse] = useState<StructuredResponse | null>(null);
   const [lastQuestion, setLastQuestion] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [thinkingStep, setThinkingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
 
@@ -31,6 +32,21 @@ export function NewDialogueView() {
     const initial = new URLSearchParams(window.location.search).get("q");
     if (initial) setMessage((current) => current || initial);
   }, []);
+
+  useEffect(() => {
+    if (!isSending) {
+      setThinkingStep(0);
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setThinkingStep((step) => (step + 1) % 4);
+    }, 2200);
+    return () => window.clearInterval(timer);
+  }, [isSending]);
+
+  const thinkingMessages = locale === "en"
+    ? ["Understanding your question…", "Checking trusted sources…", "Verifying the evidence…", "Preparing a clear answer…"]
+    : ["أفهم سؤالك…", "أراجع المصادر الموثوقة…", "أتحقق من الأدلة…", "أصوغ لك إجابة واضحة…"];
 
   async function ensureConversation(): Promise<string> {
     if (conversationId) return conversationId;
@@ -82,6 +98,12 @@ export function NewDialogueView() {
       <div className="min-h-screen">
         <MainDialogueView response={response} question={lastQuestion} />
         <div dir={locale === "en" ? "ltr" : "rtl"} className="fixed bottom-4 left-1/2 z-50 w-[min(92vw,620px)] -translate-x-1/2">
+          {isSending && (
+            <div aria-live="polite" className="mb-2 flex items-center justify-center gap-2 rounded-full border border-[#d8bd91] bg-[#fffdf8]/95 px-4 py-2 text-[11px] font-medium text-[#365f4f] shadow-sm backdrop-blur">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-[#365f4f]" aria-hidden="true" />
+              <span>{thinkingMessages[thinkingStep]}</span>
+            </div>
+          )}
           <form
             onSubmit={(event) => { event.preventDefault(); void sendMessage(); }}
             className="flex gap-2 rounded-[12px] border border-[#d8bd91] bg-[#fffdf8]/95 p-2 shadow-lg backdrop-blur"
@@ -143,6 +165,12 @@ export function NewDialogueView() {
               ))}
             </div>
           </section>
+          {isSending && (
+            <div aria-live="polite" className="mt-3 flex items-center gap-2 rounded-full border border-[#d8bd91] bg-[#fffdf8]/80 px-4 py-2 text-[11px] font-medium text-[#365f4f] shadow-sm backdrop-blur">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-[#365f4f]" aria-hidden="true" />
+              <span>{thinkingMessages[thinkingStep]}</span>
+            </div>
+          )}
           <div className="mt-3 flex items-center justify-center gap-2" dir={locale === "en" ? "ltr" : "rtl"}>
             <Link href="/" className="inline-flex h-10 items-center justify-center rounded-[10px] border border-[#d8bd91] bg-[#fffdf8]/65 px-4 text-[12px] font-medium text-[#365f4f]">{t.newDialogue.back}</Link>
             <button type="button" disabled={isSending || !message.trim() || !sessionId} onClick={() => void sendMessage()} className="inline-flex h-10 min-w-[90px] items-center justify-center rounded-[10px] bg-[#365f4f] px-4 text-[12px] font-semibold text-white disabled:opacity-50">
