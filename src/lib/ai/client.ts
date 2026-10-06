@@ -18,6 +18,18 @@ const DEFAULT_MODELS = [
   "gemini-3.5-flash",
 ];
 
+const unavailableUntil = new Map<string, number>();
+
+function cooldownMs(error: unknown): number {
+  const message = errorText(error).toLowerCase();
+  const h = message.match(/retry in\s+(\d+)h/)?.[1];
+  const m = message.match(/(?:\d+h)?\s*(\d+)m/)?.[1];
+  const s = message.match(/(?:\d+m)?\s*(\d+(?:\.\d+)?)s/)?.[1];
+  const parsed = (Number(h ?? 0) * 3600 + Number(m ?? 0) * 60 + Number(s ?? 0)) * 1000;
+  if (parsed > 0) return Math.min(parsed, 6 * 60 * 60 * 1000);
+  return 15 * 60 * 1000;
+}
+
 function getModels(): string[] {
   const configured = process.env.LLM_MODELS
     ?.split(",")
@@ -72,6 +84,11 @@ export function getLlmClient(): LlmClient {
       for (let index = 0; index < models.length; index++) {
         const model = models[index];
         const stage = options.stage ?? "llm";
+        const blockedUntil = unavailableUntil.get(model) ?? 0;
+        if (blockedUntil > Date.now()) {
+          console.warn(`[RASHID LLM] stage=${stage} model=${model} skipped=cooldown until=${new Date(blockedUntil).toISOString()}`);
+          continue;
+        }
 
         try {
           const response = await ai.models.generateContent({
@@ -103,6 +120,9 @@ export function getLlmClient(): LlmClient {
             throw error;
           }
 
+          if (isFallbackEligible(error)) {
+            unavailableUntil.set(model, Date.now() + cooldownMs(error));
+          }
           console.warn(`[RASHID LLM] stage=${stage} model=${model} fallback=true`);
         }
       }
