@@ -24,7 +24,9 @@ export async function retrieveEvidenceDetailed(input: RetrievalQuery, options: {
   const all: EvidenceCandidate[] = [];
   // Execute each knowledge need as its own retrieval task. This prevents one
   // broad keyword search from satisfying a Quran/definition/context plan only on paper.
-  const tasks = plan.flatMap((needPlan) => selected.map((connector) => ({
+  const primaryConnectors = selected.filter((connector) => connector.name !== "approved-web");
+  const webConnector = selected.find((connector) => connector.name === "approved-web");
+  const tasks = plan.flatMap((needPlan) => primaryConnectors.map((connector) => ({
     connector,
     needPlan,
     query: { ...query, needs: [needPlan.need], sourceTypes: needPlan.sourceTypes, topK: Math.min(query.topK, 8) },
@@ -45,6 +47,21 @@ export async function retrieveEvidenceDetailed(input: RetrievalQuery, options: {
       resultsByConnector[key] = 0;
     }
   });
+  // Use approved web search only for knowledge needs that primary providers could not fill.
+  if (webConnector) {
+    for (const needPlan of plan) {
+      const hasNeedResult = all.some((candidate) => needPlan.sourceTypes.includes(candidate.sourceType));
+      if (hasNeedResult) continue;
+      try {
+        const webResults = await webConnector.search({ ...query, needs: [needPlan.need], sourceTypes: needPlan.sourceTypes });
+        const valid = webResults.filter((candidate) => needPlan.sourceTypes.includes(candidate.sourceType));
+        resultsByConnector[`approved-web:${needPlan.need}`] = valid.length;
+        all.push(...valid);
+      } catch {
+        resultsByConnector[`approved-web:${needPlan.need}`] = 0;
+      }
+    }
+  }
   const deduped = deduplicateCandidates(all);
   const rankedAll = rankCandidates(deduped, query);
   // Weak/strange hadith remain searchable for authentication questions, but cannot become primary evidence in ordinary answers.
