@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
-import { Alexandria } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+import { LocaleProvider } from "@/components/i18n/LocaleProvider";
+import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
+import { SessionProvider } from "@/components/session/SessionProvider";
 
-const alexandria = Alexandria({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "600", "700"],
+const alexandria = localFont({
+  src: "./fonts/Alexandria-VariableFont_wght.ttf",
+  weight: "100 900",
   display: "swap",
   variable: "--font-alexandria",
 });
@@ -21,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={alexandria.variable}>{children}</body>
+      <body className={alexandria.variable}><LocaleProvider><OnboardingProvider><SessionProvider>{children}</SessionProvider></OnboardingProvider></LocaleProvider></body>
     </html>
   );
 }

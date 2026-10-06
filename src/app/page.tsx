@@ -1,13 +1,21 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { HomeView } from "@/components/home/HomeView";
+import { useSession } from "@/components/session/SessionProvider";
+
 export default function Home() {
-  return (
-    <main className="min-h-screen bg-[var(--color-ivory)] text-[var(--color-text)]">
-      <section className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center gap-6 px-6 text-center">
-        <p className="text-sm font-medium tracking-wide text-[var(--color-primary)]">راشد | RASHID</p>
-        <h1 className="text-4xl font-bold sm:text-5xl">منصة حوار إسلامي موثّق قائم على الأدلة</h1>
-        <p className="max-w-2xl text-lg leading-8 text-slate-600">
-          هذا هو الهيكل الأولي للمشروع. الواجهة والذكاء الاصطناعي وبيانات المصادر ستُبنى تدريجياً فوق عقود ثابتة وقابلة للاختبار.
-        </p>
-      </section>
-    </main>
-  );
+  const router = useRouter();
+  const { isHydrated, sessionId, userProfile } = useSession();
+
+  useEffect(() => {
+    if (isHydrated && (!sessionId || !userProfile)) {
+      router.replace("/landing");
+    }
+  }, [isHydrated, router, sessionId, userProfile]);
+
+  if (!isHydrated || !sessionId || !userProfile) return null;
+
+  return <HomeView />;
 }

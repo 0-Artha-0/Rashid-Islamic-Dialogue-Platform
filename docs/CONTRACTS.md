@@ -10,6 +10,12 @@ Status: **Application Contracts v1 frozen for parallel development.**
 - Conversation
 - ConversationTurn
 
+`UserProfile` includes the existing optional `religiousBackground` values
+(`muslim`, `non_muslim`, `other`, `prefer_not_to_say`) and the optional
+`nonMuslimBackground` values (`jewish`, `christian`, `hindu`, `buddhist`,
+`atheist`, `other`, `prefer_not_to_say`). The supplemental field is valid only when
+`religiousBackground` is `non_muslim`.
+
 ### Routing
 - RouterInput
 - RouterOutput
