@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - fix/evidence-retrieval-quality
+      - integration/final-demo
   workflow_dispatch:
 jobs:
   validate:
