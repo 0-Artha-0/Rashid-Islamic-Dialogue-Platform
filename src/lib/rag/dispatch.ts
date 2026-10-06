@@ -2,12 +2,14 @@ import type { RetrievalQuery } from "@/lib/schemas/retrieval";
 import type { RetrievalConnector } from "@/lib/rag/types";
 import { plannedSourceTypes } from "@/lib/rag/sourcePlanner";
 
-export function selectConnectors(query: RetrievalQuery, connectors: { local: RetrievalConnector; mcp: RetrievalConnector }): RetrievalConnector[] {
-  const types = plannedSourceTypes(query);
-  const localOnlyHadith = types.length === 1 && types[0] === "hadith";
-  const selected: RetrievalConnector[] = [];
-  // MCP is the broad approved-source gateway. Local is supplemental, not the default authority.
-  if (!localOnlyHadith || query.route !== "LOOKUP") selected.push(connectors.mcp);
-  selected.push(connectors.local);
-  return selected.filter((connector, index, all) => all.findIndex((item) => item.name === connector.name) === index);
+export function selectConnectors(query:RetrievalQuery, connectors:{local:RetrievalConnector;mcp:RetrievalConnector;web:RetrievalConnector}):RetrievalConnector[]{
+ const types=plannedSourceTypes(query);
+ const selected:RetrievalConnector[]=[];
+ // MCP is the primary broad provider. Local Dorar supplements hadith.
+ selected.push(connectors.mcp);
+ if(types.includes("hadith")) selected.push(connectors.local);
+ // Approved-domain web search is a fallback candidate source for references
+ // without a usable API/MCP result. Ranking still decides whether it survives.
+ selected.push(connectors.web);
+ return selected.filter((c,i,a)=>a.findIndex(x=>x.name===c.name)===i);
 }
