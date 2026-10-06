@@ -212,7 +212,8 @@ export async function handleChatRequest(
     let claims: StructuredResponse["claims"] = [];
     let verifications: ClaimVerification[] = [];
 
-    if (deps.claimGate && cachedEvidence.length) {
+    const reuseTurn = isEvidenceReuseTurn(input.message);
+    if (deps.claimGate && cachedEvidence.length && reuseTurn) {
       const cachedGate = await deps.claimGate.run(cachedEvidence.map((item) => item.text).join("\n\n"), evidencePack);
       verifications = cachedGate.verifications;
       claims = cachedGate.claims.map((claim) => {
@@ -222,7 +223,7 @@ export async function handleChatRequest(
     }
 
     const cacheCanAnswer =
-      isEvidenceReuseTurn(input.message) &&
+      reuseTurn &&
       claims.length > 0 &&
       verifications.some((item) => item.status !== "UNSUPPORTED");
     if (!cacheCanAnswer) {
