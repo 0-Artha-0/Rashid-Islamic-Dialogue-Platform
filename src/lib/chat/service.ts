@@ -42,6 +42,11 @@ function buildRetrievalQuery(input: ChatRequest, router: RouterOutput): Retrieva
   };
 }
 
+function isEvidenceReuseTurn(message: string): boolean {
+  const q = message.trim().toLowerCase();
+  return /^(اشرح|وضح|وضّح|بسط|بسّط|اختصر|لخص|لخّص|ماذا تقصد|ما معنى ذلك|كيف يعني|explain|clarify|simplify|summarize|what do you mean|say that more simply)/i.test(q);
+}
+
 function referralFor(reason: ReferralState["reason"], message: string): ReferralState {
   return {
     reason,
@@ -216,7 +221,10 @@ export async function handleChatRequest(
       });
     }
 
-    const cacheCanAnswer = claims.length > 0 && verifications.some((item) => item.status !== "UNSUPPORTED");
+    const cacheCanAnswer =
+      isEvidenceReuseTurn(input.message) &&
+      claims.length > 0 &&
+      verifications.some((item) => item.status !== "UNSUPPORTED");
     if (!cacheCanAnswer) {
       let planned: Awaited<ReturnType<typeof planSearchQueries>> = [];
       try {
@@ -270,7 +278,7 @@ export async function handleChatRequest(
     }
 
     // One bounded, targeted retry. Never loop indefinitely.
-    if (deps.claimGate && verifications.length && !verifications.some(v => v.status !== "UNSUPPORTED")) {
+    if (deps.claimGate && (claims.length === 0 || !verifications.some(v => v.status !== "UNSUPPORTED"))) {
       const missing = verifications.map(v => v.reason).filter(Boolean).join("; ");
       const retryQuery: RetrievalQuery = {
         ...retrievalQuery,
