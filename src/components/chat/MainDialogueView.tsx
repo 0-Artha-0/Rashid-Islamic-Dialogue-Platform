@@ -125,7 +125,22 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
         <Image src="/images/onboarding-background.jpeg" alt="" fill priority sizes="100vw" className="object-cover object-center" />
       </div>
 
-      <Sidebar activeId="new-chat" />
+      <Sidebar
+        activeId="new-chat"
+        onNavigate={(id) => {
+          if (id === "discussion-map") {
+            setSelectedCitation(null);
+            setDrawer("map");
+            return true;
+          }
+          if (id === "sources") {
+            setSelectedCitation(null);
+            setDrawer("sources");
+            return true;
+          }
+          return false;
+        }}
+      />
 
       <main className="relative z-10 flex min-h-screen flex-1 flex-col overflow-hidden lg:min-h-0">
         <header className="shrink-0 border-b border-[#d8bd91]/50 bg-[#fffaf0]/75 px-4 py-3 backdrop-blur sm:px-8">
@@ -210,7 +225,12 @@ export function MainDialogueView({ turns }: { turns: DialogueTurn[] }) {
                 <div className="rounded-[14px] border border-[#cbd9cf] bg-[#eef4ef] p-4">
                   <p className="text-[12px] font-bold text-[#365f4f]">{sourceLabel(selectedCitation, locale)}</p>
                   <p className="mt-1 text-[10px] text-[#71877c]">{sourceLocator(selectedCitation)}</p>
-                  <p className={`mt-3 whitespace-pre-wrap text-[14px] leading-8 text-[#2f5045] ${selectedCitation.sourceType === "quran" ? "font-serif" : ""}`}>{selectedCitation.text}</p>
+                  <p
+                    className="mt-3 whitespace-pre-wrap text-[14px] leading-8 text-[#2f5045]"
+                    style={selectedCitation.sourceType === "quran" ? { fontFamily: '"Noto Naskh Arabic", "Traditional Arabic", "Times New Roman", serif' } : undefined}
+                  >
+                    {selectedCitation.text}
+                  </p>
                   {selectedCitation.url && (
                     <a href={selectedCitation.url} target="_blank" rel="noreferrer" className="mt-3 inline-block text-[10px] font-semibold text-[#9c7650] hover:underline">
                       {locale === "ar" ? "فتح المصدر الأصلي" : "Open original source"}
