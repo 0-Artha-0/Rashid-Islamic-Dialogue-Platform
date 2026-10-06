@@ -15,6 +15,7 @@ async function main() {
     preferredSourceLanguages: ["en"],
     sourceTypes: ["terminology"],
     conceptIds: [],
+    needs: [],
     topK: 3,
   };
 
