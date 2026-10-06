@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { Background, Controls, Handle, MarkerType, MiniMap, Position, ReactFlow, type Edge, type Node, type NodeProps } from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 import { Sidebar } from "@/components/home/Sidebar";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import type { StructuredResponse } from "@/lib/schemas/response";
@@ -133,6 +135,26 @@ function MapMini({ response }: { response: StructuredResponse }) {
 }
 
 
+type RashidGraphNodeData = { title: string; subtitle?: string; kind: "dialogue" | "claim" | "evidence" };
+
+function RashidGraphNode({ data }: NodeProps<Node<RashidGraphNodeData>>) {
+  const styles = data.kind === "dialogue"
+    ? "border-[#365f4f] bg-[#365f4f] text-white"
+    : data.kind === "claim"
+      ? "border-[#d6a092] bg-[#fff0ec] text-[#365f4f]"
+      : "border-[#9db9a7] bg-[#edf6ef] text-[#365f4f]";
+  return (
+    <div className={`min-w-[170px] max-w-[230px] rounded-[16px] border-2 px-4 py-3 text-center shadow-md ${styles}`}>
+      <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-0 !bg-[#c8aa73]" />
+      <p className="text-[10px] font-bold leading-5">{data.title}</p>
+      {data.subtitle && <p className="mt-1 text-[9px] leading-4 opacity-75">{data.subtitle}</p>}
+      <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-0 !bg-[#c8aa73]" />
+    </div>
+  );
+}
+
+const graphNodeTypes = { rashid: RashidGraphNode };
+
 function EvidenceGraphCanvas({ turns }: { turns: DialogueTurn[] }) {
   const { locale } = useLocale();
   const responses = turns.map((turn) => turn.response).filter((item): item is StructuredResponse => Boolean(item));
@@ -141,75 +163,65 @@ function EvidenceGraphCanvas({ turns }: { turns: DialogueTurn[] }) {
   for (const response of responses) for (const evidence of response.citations) evidenceMap.set(evidence.id, evidence);
   const evidence = [...evidenceMap.values()];
 
-  const claimX = (index: number) => 220 + (index % 3) * 230;
-  const claimY = (index: number) => 210 + Math.floor(index / 3) * 145;
-  const evidenceX = (index: number) => 120 + (index % 4) * 190;
-  const evidenceY = (index: number) => 470 + Math.floor(index / 4) * 120;
+  const nodes = useMemo<Node<RashidGraphNodeData>[]>(() => {
+    const result: Node<RashidGraphNodeData>[] = [{
+      id: "dialogue-root",
+      type: "rashid",
+      position: { x: 390, y: 40 },
+      data: { kind: "dialogue", title: turns[0]?.question ?? "", subtitle: locale === "ar" ? "سياق الحوار" : "Dialogue context" },
+    }];
+    claims.forEach((claim, index) => result.push({
+      id: `claim-${claim.id}`,
+      type: "rashid",
+      position: { x: 120 + (index % 3) * 300, y: 240 + Math.floor(index / 3) * 190 },
+      data: { kind: "claim", title: claim.text, subtitle: locale === "ar" ? "ادعاء موثّق" : "Verified claim" },
+    }));
+    evidence.forEach((item, index) => result.push({
+      id: `evidence-${item.id}`,
+      type: "rashid",
+      position: { x: 80 + (index % 4) * 240, y: 560 + Math.floor(index / 4) * 150 },
+      data: { kind: "evidence", title: sourceLabel(item, locale), subtitle: sourceLocator(item) },
+    }));
+    return result;
+  }, [claims, evidence, locale, turns]);
+
+  const edges = useMemo<Edge[]>(() => {
+    const result: Edge[] = claims.map((claim) => ({
+      id: `root-${claim.id}`,
+      source: "dialogue-root",
+      target: `claim-${claim.id}`,
+      markerEnd: { type: MarkerType.ArrowClosed },
+      style: { stroke: "#c8aa73", strokeWidth: 1.5 },
+    }));
+    for (const claim of claims) for (const evidenceId of claim.evidenceIds) {
+      if (!evidenceMap.has(evidenceId)) continue;
+      result.push({
+        id: `${claim.id}-${evidenceId}`,
+        source: `claim-${claim.id}`,
+        target: `evidence-${evidenceId}`,
+        markerEnd: { type: MarkerType.ArrowClosed },
+        animated: true,
+        style: { stroke: "#8ca997", strokeWidth: 1.5 },
+      });
+    }
+    return result;
+  }, [claims, evidenceMap]);
 
   return (
-    <div className="space-y-3">
-      <p className="text-[10px] leading-5 text-[#71877c]">
-        {locale === "ar" ? "اسحب أفقياً أو عمودياً لاستكشاف علاقة الادعاءات بالأدلة." : "Scroll around to explore how claims connect to evidence."}
-      </p>
-      <div className="overflow-auto rounded-[16px] border border-[#d8bd91] bg-[#fffdf8] shadow-inner">
-        <div className="relative h-[760px] w-[920px]">
-          <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
-            {claims.flatMap((claim, ci) =>
-              claim.evidenceIds.map((evidenceId) => {
-                const ei = evidence.findIndex((item) => item.id === evidenceId);
-                if (ei < 0) return null;
-                return (
-                  <line
-                    key={`${claim.id}-${evidenceId}`}
-                    x1={claimX(ci) + 85}
-                    y1={claimY(ci) + 45}
-                    x2={evidenceX(ei) + 75}
-                    y2={evidenceY(ei)}
-                    stroke="#c8aa73"
-                    strokeWidth="1.5"
-                    strokeDasharray="5 4"
-                  />
-                );
-              }),
-            )}
-          </svg>
-
-          <div className="absolute left-[350px] top-8 w-[220px] rounded-[18px] border-2 border-[#365f4f] bg-[#365f4f] px-4 py-3 text-center text-white shadow">
-            <p className="text-[9px] opacity-75">{locale === "ar" ? "سياق الحوار" : "Dialogue context"}</p>
-            <p className="mt-1 text-[12px] font-bold leading-5">{turns[0]?.question ?? ""}</p>
-          </div>
-
-          {claims.map((claim, index) => (
-            <div
-              key={claim.id}
-              className="absolute w-[170px] rounded-[14px] border border-[#d6a092] bg-[#fff0ec] px-3 py-3 text-center shadow-sm"
-              style={{ left: claimX(index), top: claimY(index) }}
-            >
-              <p className="text-[9px] font-semibold text-[#a06f63]">{locale === "ar" ? "ادعاء موثّق" : "Verified claim"}</p>
-              <p className="mt-1 text-[10px] leading-5 text-[#365f4f]">{claim.text}</p>
-            </div>
-          ))}
-
-          {evidence.map((item, index) => (
-            <div
-              key={item.id}
-              className="absolute w-[150px] rounded-[14px] border border-[#9db9a7] bg-[#edf6ef] px-3 py-3 text-center shadow-sm"
-              style={{ left: evidenceX(index), top: evidenceY(index) }}
-            >
-              <p className="text-[9px] font-semibold text-[#567466]">{sourceLabel(item, locale)}</p>
-              <p className="mt-1 text-[9px] text-[#71877c]">{sourceLocator(item)}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className="h-[calc(100vh-110px)] min-h-[560px] overflow-hidden rounded-[16px] border border-[#d8bd91] bg-[#fffdf8]">
+      <ReactFlow nodes={nodes} edges={edges} nodeTypes={graphNodeTypes} fitView fitViewOptions={{ padding: 0.2 }} minZoom={0.25} maxZoom={1.8} panOnScroll zoomOnDoubleClick>
+        <Background gap={22} size={1} color="#e7dac4" />
+        <MiniMap pannable zoomable nodeColor={(node) => node.data?.kind === "dialogue" ? "#365f4f" : node.data?.kind === "claim" ? "#e6b7aa" : "#a9c3b2"} />
+        <Controls showInteractive={false} />
+      </ReactFlow>
     </div>
   );
 }
 
 export function MainDialogueView({ turns, pendingQuestion = null }: { turns: DialogueTurn[]; pendingQuestion?: string | null }) {
   const { locale } = useLocale();
-  const [drawer, setDrawer] = useState<"sources" | "map" | "graph" | null>(null);
-  const [autoOpenedMap, setAutoOpenedMap] = useState(false);
+  const [drawer, setDrawer] = useState<"sources" | "map" | "graph" | null>(() => turns.some((turn) => turn.response) ? "map" : null);
+  const [autoOpenedMap, setAutoOpenedMap] = useState(() => turns.some((turn) => turn.response));
   const [selectedCitation, setSelectedCitation] = useState<EvidenceItem | null>(null);
   const latest = [...turns].reverse().find((turn) => turn.response)?.response;
 
@@ -347,7 +359,7 @@ export function MainDialogueView({ turns, pendingQuestion = null }: { turns: Dia
 
       {drawer && latest && (
         <aside
-          className="relative z-20 hidden h-screen w-[360px] shrink-0 overflow-y-auto border-r border-[#d8bd91] bg-[#fffaf0] p-5 shadow-[-10px_0_30px_rgba(64,84,72,0.08)] lg:block"
+          className={`relative z-20 hidden h-screen shrink-0 overflow-y-auto border-r border-[#d8bd91] bg-[#fffaf0] p-5 shadow-[-10px_0_30px_rgba(64,84,72,0.08)] lg:block ${drawer === "graph" ? "w-[min(52vw,820px)]" : "w-[360px]"}`}
         >
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-[15px] font-bold text-[#365f4f]">
