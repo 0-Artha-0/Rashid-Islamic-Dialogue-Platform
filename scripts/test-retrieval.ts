@@ -36,6 +36,7 @@ async function main() {
     preferredResponseLanguage: "en",
     preferredSourceLanguages: ["en"],
     conceptIds: [],
+    needs: [],
     topK: 5
   };
 
