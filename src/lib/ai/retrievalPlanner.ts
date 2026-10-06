@@ -15,6 +15,8 @@ export async function planSearchQueries(input:{message:string;router:RouterOutpu
   "Use the dialogue state to resolve pronouns and follow-ups.",
   "Each query must describe the fact/evidence needed, not the user's rhetoric or emotions.",
   "Return one concise search query per need. Do not answer the user.",
+  "When Quran evidence is needed and you know a directly relevant verse, include its numeric reference like 2:183 in the query.",
+  "When a specific hadith is already known from dialogue context, include its HadeethEnc id only if it is actually known; never invent IDs.",
   JSON.stringify(input,null,2)
  ].join("\n\n");
  const raw=await llm.generate(prompt,{stage:"retrieval-planner",responseMimeType:"application/json",responseJsonSchema:schema,temperature:0});
