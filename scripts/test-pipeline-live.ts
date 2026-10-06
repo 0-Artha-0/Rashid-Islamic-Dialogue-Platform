@@ -91,7 +91,7 @@ async function main() {
         generate: async (prompt, options) => {
           const name = ["K planner", "L writer", "M verifier"][finalCalls++];
           stage(`${name}:start`, {});
-          const raw = await llm.generate(prompt, options);
+          const raw = await llm.generate(prompt, { ...options, stage: name });
           stage(`${name}:result`, raw); return raw;
         },
       }),
