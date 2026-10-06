@@ -41,5 +41,6 @@ export const chunkRecordSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).default({}),
 });
 
+export type SourceType = z.infer<typeof sourceTypeSchema>;
 export type BaseSourceRecord = z.infer<typeof baseSourceRecordSchema>;
 export type ChunkRecord = z.infer<typeof chunkRecordSchema>;
