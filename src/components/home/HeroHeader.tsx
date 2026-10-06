@@ -5,21 +5,21 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 export function HeroHeader() {
   const { t } = useLocale();
   return (
-    <header className="flex flex-col items-center text-center max-w-xl mx-auto mb-4 sm:mb-5">
+    <header className="flex flex-col items-center text-center max-w-xl mx-auto mb-4 sm:mb-5 pt-1">
       {/* Central Brand Logo */}
-      <div className="mb-3 sm:mb-4">
+      <div className="mb-2 sm:mb-2.5">
         <Image
           src="/brand/rashid-logo.svg"
           alt="راشد | RASHID"
-          width={100}
-          height={56}
+          width={150}
+          height={84}
           priority
-          className="h-12 sm:h-14 w-auto object-contain drop-shadow-sm"
+          className="h-16 sm:h-[76px] md:h-[84px] w-auto object-contain drop-shadow-sm"
         />
       </div>
 
       {/* Quranic Verse & Citation */}
-      <div className="mb-3 sm:mb-3.5 space-y-1">
+      <div className="mb-4 sm:mb-4.5 space-y-1 rounded-[18px] px-5 py-1.5">
         <p className="text-base/6 sm:text-lg/7 md:text-[18px]/[24px] font-semibold text-[#1d3933] tracking-normal">
           «وجعلناكم شعوباً وقبائل لتعارفوا»
         </p>
