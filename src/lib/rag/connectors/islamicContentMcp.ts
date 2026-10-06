@@ -393,7 +393,7 @@ function normalize(
     stringField(object, ["language", "lang", "languageCode"]) ??
     query.queryLanguage;
 
-  const grading = stringField(object, ["grading", "grade", "authenticity"]);
+  const grading = stringField(object, ["grading", "grade", "authenticity", "hukm", "ruling"]);
   const finalLocator = grading
     ? `${locator} | grading=${grading}`
     : locator;
@@ -416,7 +416,8 @@ function normalize(
           ? object.relevance
           : 0.5,
     retrievalMethod: "keyword",
-    conceptIds: []
+    conceptIds: [],
+    grading
   };
 }
 
