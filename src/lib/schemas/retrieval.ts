@@ -12,6 +12,7 @@ export const retrievalQuerySchema = z.object({
   preferredSourceLanguages: z.array(contentLanguageSchema).default([]),
   conceptIds: z.array(idSchema).default([]),
   sourceTypes: z.array(sourceTypeSchema).default([]),
+  needs: z.array(z.string().min(1)).default([]),
   topK: z.number().int().positive().max(50).default(8),
 });
 
@@ -29,6 +30,7 @@ export const evidenceCandidateSchema = z.object({
   score: z.number(),
   retrievalMethod: z.enum(["semantic", "keyword", "hybrid", "exact"]),
   conceptIds: z.array(idSchema).default([]),
+  grading: z.string().optional(),
 });
 
 export type RetrievalQuery = z.infer<typeof retrievalQuerySchema>;
