@@ -5,9 +5,21 @@ import type { LlmClient } from "./client";
 export async function generateFinalResponse(input: PlanDialogueInput, llm?: LlmClient) {
   const plan = llm ? await planDialogue(input, llm) : await planDialogue(input);
   const writerInput = { ...input, plan };
-  const answer = await writeAnswer(writerInput, llm);
-  const verification = await verifyFinalAnswer(writerInput, answer, llm);
-  if (!verification.passed) throw new Error("Final response failed evidence verification.");
+  let answer = await writeAnswer(writerInput, llm);
+  let verification = await verifyFinalAnswer(writerInput, answer, llm);
+  if (!verification.passed) {
+    const feedback = verification.paragraphs
+      .filter(p => !(p.supported && p.qualificationsPreserved && p.languageCorrect && p.moveFollowed))
+      .map(p => `Paragraph ${p.index}: ${p.reason}`)
+      .join("\n");
+    console.warn("[RASHID final-verifier] first draft rejected", JSON.stringify(verification));
+    answer = await writeAnswer(writerInput, llm, feedback);
+    verification = await verifyFinalAnswer(writerInput, answer, llm);
+  }
+  if (!verification.passed) {
+    console.error("[RASHID final-verifier] corrected draft rejected", JSON.stringify(verification));
+    throw new Error("Final response failed evidence verification after one correction pass.");
+  }
   const claimIds = new Set(answer.paragraphs.flatMap(p => p.claimIds));
   const evidenceIds = new Set(answer.paragraphs.flatMap(p => p.evidenceIds));
   return {
