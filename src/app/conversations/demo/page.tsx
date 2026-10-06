@@ -10,8 +10,7 @@ const demoResponse = structuredResponseSchema.parse(normalAnswerFixture);
 export default function DemoConversationPage() {
   return (
     <MainDialogueView
-      response={demoResponse}
-      question={demoRequest.message}
+      turns={[{ question: demoRequest.message, response: demoResponse }]}
     />
   );
 }
