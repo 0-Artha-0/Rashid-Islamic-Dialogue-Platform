@@ -33,13 +33,13 @@ export function LanguageView() {
         <Image
           src="/brand/rashid-logo.svg"
           alt="راشد | RASHID"
-          width={100}
-          height={56}
+          width={150}
+          height={84}
           priority
-          className="h-auto w-[92px] object-contain"
+          className="h-auto w-[138px] sm:w-[156px] object-contain drop-shadow-sm"
         />
 
-        <div className="mt-5 flex items-center justify-center gap-1.5" dir="rtl" aria-hidden="true">
+        <div className="mt-4 flex items-center justify-center gap-1.5" dir="rtl" aria-hidden="true">
           {[0, 1, 2, 3, 4].map((step) => (
             <span
               key={step}
