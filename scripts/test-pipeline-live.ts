@@ -126,7 +126,7 @@ async function main() {
       for (const evidence of result.citations) assert.ok(state?.evidenceUsed.includes(evidence.id));
       stage("PASS", { conversationId, status: result.status }); passed++;
     } catch (error) {
-      trace("FAIL", { conversationId, lastStage, message: error instanceof Error ? error.message : String(error) });
+      trace("FAIL", { conversationId, lastStage, errorName: error instanceof Error ? error.name : typeof error, message: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
     }
   }
   console.log(`\nLive pipeline: ${passed}/${tests.length} passed. Test sessions and turns remain in the configured database.`);
