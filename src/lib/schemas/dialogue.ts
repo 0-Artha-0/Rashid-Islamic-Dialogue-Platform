@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { idSchema } from "./common";
+import { evidenceItemSchema } from "./evidence";
 
 export const dialoguePointStatusSchema = z.enum(["active", "resolved", "open", "disputed"]);
 
@@ -28,6 +29,7 @@ export const dialogueStateSchema = z.object({
   openPointIds: z.array(idSchema).default([]),
   disputedPointIds: z.array(idSchema).default([]),
   evidenceUsed: z.array(idSchema).default([]),
+  verifiedEvidence: z.array(evidenceItemSchema).default([]),
 });
 
 export type DialoguePoint = z.infer<typeof dialoguePointSchema>;
