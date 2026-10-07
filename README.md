@@ -1,92 +1,225 @@
 # راشد | RASHID
 
-**راشد** منصة حوار إسلامي موثّق قائمة على الأدلة، ومصممة بالعربية أولاً مع دعم الإنجليزية.
+**راشد** منصة حوار إسلامي موثّق بالذكاء الاصطناعي، صُممت بالعربية أولًا مع دعم الإنجليزية.  
+لا يكتفي راشد بإعطاء إجابة، بل يحاول أن يجعل **مسار الوصول إليها قابلًا للتتبع والتحقق**: من فهم السؤال، إلى استرجاع المصادر، إلى بناء الادعاءات والتحقق منها، ثم صياغة الإجابة وعرض أدلتها للمستخدم.
 
-تهدف المنصة إلى مساعدة المستخدم على فهم الإسلام من خلال حوار منظم يمكن تتبع أدلته، مع دعم مناقشة الشبهات، والمناظرة المنظمة، وعرض الخلاف العلمي، والإحالة إلى المختص عند الحاجة.
+> **الفكرة الأساسية:** الانتقال من "إجابة جاهزة" إلى **فهم موثّق، سياقي، وقابل للحوار**.
 
-> المشروع قيد التطوير ضمن نسخة MVP للهاكاثون.
+---
 
-## فكرة المشروع
+## المشكلة | Problem
 
-راشد ليس مجرد Chatbot، ولا محرك فتاوى.
+المحتوى الإسلامي الرقمي اليوم واسع ومتناثر، والمستخدم غير المتخصص قد يواجه عدة مشكلات:
 
-يعتمد المشروع على **Evidence-Linked Dialogue Architecture**، بحيث يتتبع النظام جانبين معاً:
+- إجابات دينية بلا مصدر واضح أو باقتباسات خارج سياقها.
+- صعوبة الوصول إلى القرآن والحديث والتفسير والمصادر الموثوقة من سؤال طبيعي بسيط.
+- خلط بين الرأي، والدليل، والخلاف العلمي، والحكم الشخصي.
+- أنظمة ذكاء اصطناعي قد تصوغ إجابة مقنعة لغويًا رغم ضعف الدليل.
+- فقدان سياق الحوار عند الأسئلة المتتابعة.
+- صعوبة معرفة: **ما الذي استندت إليه الإجابة؟ ولماذا؟**
 
-1. **Dialogue State | حالة الحوار:** أين وصل النقاش؟ وما النقاط المحسومة والمفتوحة؟
-2. **Evidence Graph | شبكة الأدلة:** ما الدليل المرتبط بكل ادعاء؟ وما علاقة الأدلة بالآراء والمصادر؟
+---
 
-المسار الأساسي المقترح:
+## الحل | Solution
 
-```text
-سؤال المستخدم
-→ Adaptive Router
-→ Retrieval
-→ Evidence Pack
-→ Atomic Claims
-→ Claim-Evidence Gate
-→ Dialogue Planner
-→ Writer
-→ Final Verification
-→ تحديث حالة الحوار
-→ الإجابة المنظمة
-```
+راشد يبني الإجابة داخل **Evidence-Linked Dialogue Architecture** تربط بين حالة الحوار والأدلة.
 
-## مبادئ أساسية
-
-- المحتوى الديني النهائي يعتمد فقط على المصادر المعتمدة في التحدي.
-- لا يظهر ادعاء ديني مهم دون دليل مرتبط به.
-- راشد لا يصدر فتوى شخصية مستقلة.
-- المسائل الخلافية تعرض بوضوح دون إخفاء الخلاف.
-- عند نقص الأدلة أو خروج السؤال عن الحدود، يستخدم النظام الامتناع أو الإحالة.
-- الواجهة عربية أولاً وRTL، مع دعم الإنجليزية.
-- راشد يدعم الحوار والمناظرة المنظمة، وليس مجرد سؤال وجواب.
-
-## التقنيات الحالية
-
-- Next.js 15
-- React 19
-- TypeScript
-- Tailwind CSS
-- Zod
-- GitHub
-- Render
-
-ستضاف بقية الأدوات عند الحاجة، وليس لمجرد وجودها في الخطة.
-
-## هيكل المشروع
+المسار الرئيسي:
 
 ```text
-src/
-├── app/
-├── components/
-├── lib/
-│   ├── ai/
-│   ├── rag/
-│   ├── graphs/
-│   └── schemas/
-├── prompts/
-└── types/
-
-data/
-├── raw/
-├── normalized/
-├── processed/
-├── embeddings/
-├── mock/
-└── tests/
-
-scripts/
-docs/
-public/
-└── brand/
+User Question
+   ↓
+Adaptive Router
+   ↓
+Retrieval Planner + Source Routing
+   ↓
+Trusted Sources / APIs / MCP
+   ↓
+Evidence Pack
+   ↓
+Claim Builder
+   ↓
+Claim-Evidence Gate
+   ↓
+Dialogue Planner
+   ↓
+Writer
+   ↓
+Final Verifier
+   ↓
+Structured Response + Citations + Dialogue/Evidence Graph
 ```
 
-## التشغيل محلياً
+### ما الذي يميز راشد؟
 
-بعد Clone للمستودع:
+- **استرجاع متعدد المصادر الموثوقة** بدل الاعتماد على ذاكرة النموذج وحدها.
+- **Claim-Evidence Gate** للتحقق من أن الادعاءات المهمة مدعومة بأدلة.
+- **Final Verifier** لمراجعة الإجابة بعد صياغتها.
+- **Clarification** عند غموض السؤال بدل التخمين.
+- **Referral** عند الأسئلة التي تتطلب حكمًا شخصيًا أو مختصًا.
+- **Insufficient Evidence** عند عدم كفاية الأدلة بدل اختلاق إجابة.
+- دعم **الخلاف العلمي** كمسار مستقل.
+- حفظ سياق الحوار والأسئلة المتتابعة.
+- **Inline citations** وفتح المصدر الأصلي.
+- **Dialogue & Evidence Graph** تفاعلية توضّح العلاقة بين السؤال، الادعاءات، والأدلة.
+
+---
+
+## مصادر المعرفة | Knowledge Sources
+
+يسترجع النظام المعرفة من مصادر وخدمات موثوقة، منها:
+
+- **QuranEnc**
+- **HadeethEnc**
+- **Dorar**
+- **Islamic Content MCP**
+- Corpus محلي منظم
+- **Approved Web Search** محصور بقائمة مواقع موثوقة فقط
+
+البحث على الويب ليس بحثًا مفتوحًا؛ يتم تقييده إلى نطاقات معتمدة مثل:
+`dorar.net`, `tafsir.net`, `quranenc.com`, `hadeethenc.com`, `islamenc.com`, `shamela.ws` وغيرها.
+
+---
+
+## الموثوقية والسلامة | Reliability & Safety
+
+الموثوقية في راشد جزء من المسار نفسه، وليست خطوة تجميلية بعد توليد الإجابة:
+
+- **Zod schemas** تتحقق من بنية البيانات عند الحدود المهمة بين مراحل النظام.
+- التحقق من الأدلة قبل السماح للادعاءات بالوصول إلى الكاتب.
+- الكاتب يصوغ من الادعاءات المقبولة والأدلة المسترجعة.
+- التحقق النهائي من الإجابة بعد الصياغة.
+- إعادة صياغة محدودة عند فشل التحقق بدل loop غير محدود.
+- مسار منفصل للأسئلة الغامضة.
+- عدم إصدار فتوى شخصية مستقلة.
+- الامتناع أو الإحالة عند عدم كفاية الأدلة.
+- حفظ مصدر كل دليل وإظهاره للمستخدم.
+
+---
+
+## التقنيات | Technology Stack
+
+### Frontend
+- **Next.js 15**
+- **React 19**
+- **TypeScript**
+- **Tailwind CSS**
+- **React Flow / @xyflow/react** لعرض Dialogue & Evidence Graph
+
+### Backend & AI
+- **Next.js API Routes**
+- **Google Gemini API** عبر `@google/genai`
+- Multi-model fallback مع cooldown عند quota/rate-limit أو temporary unavailability
+- **Zod** لعقود البيانات والتحقق من المخرجات بين المراحل
+
+### Data & State
+- **Neon PostgreSQL**
+- Session / Conversation / Turn persistence
+- Dialogue State
+- Verified evidence reuse للحالات المناسبة
+- `sessionStorage` + React Context لحالة الجلسة في الواجهة
+
+### Retrieval
+- QuranEnc API
+- HadeethEnc API
+- Dorar API
+- Islamic Content MCP
+- Local corpus
+- Approved-domain web fallback
+
+### Delivery
+- **GitHub**
+- **GitHub Actions**
+- **Render**
+
+---
+
+## المطورون | Developers
+
+تم تطوير المشروع بواسطة **فريق راشد | Team RASHID** ضمن الهاكاثون الإسلامي للذكاء الاصطناعي.
+
+- Core repository: **0-Artha-0/Rashid-Islamic-Dialogue-Platform**
+- Development, AI pipeline, retrieval, verification, UI/UX, and deployment were built collaboratively by the RASHID team.
+
+> يمكن إضافة أسماء أعضاء الفريق هنا عند النشر النهائي إذا رغبتُم بعرض الأسماء الكاملة بدل حسابات GitHub.
+
+---
+
+## لماذا طُوّر راشد؟ | Why RASHID?
+
+طُوّر راشد لأن المشكلة ليست نقص المعلومات فقط، بل **كيفية الوصول إلى المعلومة الدينية، وفهم سياقها، ومعرفة دليلها، والتمييز بين القطعي والخلافي والشخصي**.
+
+الهدف طويل المدى هو المساهمة في نقل تجربة المستخدم من:
+
+> **"أعطني جوابًا سريعًا"**
+
+إلى:
+
+> **"أرني الدليل، والسياق، وما هو محل اتفاق أو خلاف، ودعني أتحقق بنفسي."**
+
+---
+
+## التشغيل محليًا | Local Setup
+
+### 1. Clone
+
+```bash
+git clone https://github.com/0-Artha-0/Rashid-Islamic-Dialogue-Platform.git
+cd Rashid-Islamic-Dialogue-Platform
+```
+
+### 2. Install dependencies
+
+يفضّل استخدام:
+
+```bash
+npm ci
+```
+
+أو:
 
 ```bash
 npm install
+```
+
+### 3. Environment variables
+
+انسخ ملف البيئة:
+
+```bash
+cp .env.example .env.local
+```
+
+على Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+ثم أضف القيم المطلوبة في `.env.local`:
+
+```env
+GEMINI_API_KEY=
+DATABASE_URL=
+
+LLM_MODELS=
+EMBEDDING_MODEL=
+
+RASHID_DISABLE_WEB_SEARCH=false
+RASHID_APPROVED_WEB_DOMAINS=
+WEB_SEARCH_MODEL=
+```
+
+أهم متغيرين للتشغيل الكامل هما:
+
+- `GEMINI_API_KEY`
+- `DATABASE_URL` لقاعدة Neon PostgreSQL
+
+> لا ترفع `.env.local` أو أي مفاتيح سرية إلى GitHub.
+
+### 4. Run
+
+```bash
 npm run dev
 ```
 
@@ -96,122 +229,170 @@ npm run dev
 http://localhost:3000
 ```
 
-إذا كان المنفذ 3000 مستخدماً، يمكن تشغيل نسخة الإنتاج على منفذ آخر:
-
-```bash
-npm start -- -p 3001
-```
-
-## متغيرات البيئة
-
-انسخ:
-
-`.env.example`
-
-إلى ملف محلي باسم:
-
-`.env.local`
-
-ثم أضف القيم الحقيقية محلياً.
-
-**لا ترفع `.env.local` إلى GitHub.**
-
-## طريقة عمل الفريق
-
-- `main`: النسخة المستقرة.
-- `dev`: فرع الدمج والتطوير المشترك.
-- `feature/*`: فروع المهام المنفصلة.
-
-المسار المعتاد:
-
-```text
-main
-└── dev
-    ├── feature/router
-    ├── feature/retrieval
-    ├── feature/gui
-    └── ...
-```
-
-كل Feature تختبر محلياً، ثم ترفع عبر Pull Request إلى `dev`. بعد اكتمال نسخة مستقرة واختبارها، تدمج `dev` في `main`.
-
-## الاختبار الحالي
-
-تم التحقق من الأساس الحالي بنجاح عبر:
-
-```bash
-npm install
-npm run dev
-npm run build
-```
-
-قبل دمج أي تغيير كبير، يجب ألا يكسر:
+### 5. Production build
 
 ```bash
 npm run build
-```
-
-## النشر
-
-المسار المقترح للهاكاثون هو ربط المستودع بخدمة **Render Web Service**.
-
-Build Command:
-
-```bash
-npm install && npm run build
-```
-
-Start Command:
-
-```bash
 npm start
 ```
-
-لا نعتمد على Render Blueprint دون مراجعة إعداداته أولاً.
-
-## حالة البيانات
-
-لم نثبت بعد استراتيجية إدخال corpus الديني النهائي.
-
-لذلك مجلدات البيانات موجودة حالياً كهيكل فقط، ولن نضيف مصادر دينية إلى النظام حتى يعتمد الفريق طريقة الجمع، والتوحيد، والتتبع، والتحقق.
-
-## وثائق المشروع
-
-راجع مجلد `docs/` من أجل:
-
-- `ARCHITECTURE.md`
-- `SOURCES.md`
-- `SYSTEM_INSTRUCTIONS.md`
-- `TESTING.md`
 
 ---
 
-# English Summary
+## الاختبار | Validation
 
-**RASHID** is an Arabic-first, evidence-based Islamic dialogue platform for guided learning, structured debate, source inspection, scholarly disagreement handling, and safe referral.
-
-The project uses an **Evidence-Linked Dialogue Architecture** that connects dialogue state with evidence-backed claims.
-
-RASHID is not a generic chatbot or a fatwa engine. Religious claims must be grounded in the approved challenge corpus, and personalized rulings must follow the referral path.
-
-## Local Setup
+أهم أوامر التحقق قبل الدمج أو النشر:
 
 ```bash
-npm install
+npm run typecheck
+npm run build
+```
+
+كما يحتوي المشروع على اختبارات ومسارات فحص للـpipeline والاسترجاع والتحقق.
+
+---
+
+## النشر | Deployment
+
+النسخة الرئيسية معدّة للنشر عبر **Render Web Service**.
+
+### Build Command
+
+```bash
+npm ci && npm run build
+```
+
+### Start Command
+
+```bash
+npm start
+```
+
+أضف متغيرات البيئة نفسها الموجودة في `.env.local` داخل إعدادات Render.
+
+---
+
+## هيكل المشروع | Project Structure
+
+```text
+src/
+├── app/                 # Pages + API routes
+├── components/          # UI and chat components
+├── lib/
+│   ├── ai/              # Router, planner, writer, verifier, LLM client
+│   ├── rag/             # Retrieval and source connectors
+│   ├── graphs/          # Dialogue / evidence graph logic
+│   ├── db/              # Persistence layer
+│   └── schemas/         # Zod contracts
+├── prompts/
+└── types/
+
+data/
+├── raw/
+├── normalized/
+├── processed/
+└── tests/
+
+scripts/
+docs/
+public/
+└── brand/
+```
+
+---
+
+## English
+
+### What is RASHID?
+
+**RASHID** is an Arabic-first, evidence-linked Islamic dialogue platform powered by AI. It is designed not only to answer questions, but to make the reasoning path **traceable, source-grounded, and verifiable**.
+
+### The Problem
+
+Users searching for Islamic knowledge often face fragmented sources, decontextualized quotations, unclear scholarly disagreement, unsourced AI answers, and difficulty distinguishing general information from cases that require a qualified specialist.
+
+### The Solution
+
+RASHID combines dialogue state, trusted-source retrieval, claim extraction, claim-evidence verification, dialogue planning, answer generation, and final verification in one pipeline.
+
+It can:
+
+- retrieve from trusted Islamic sources;
+- keep conversation context across follow-up turns;
+- attach citations to the final response;
+- ask for clarification instead of guessing;
+- refer personalized rulings to a qualified specialist;
+- abstain when evidence is insufficient;
+- visualize dialogue points, claims, and evidence in an interactive graph.
+
+### Core Architecture
+
+```text
+User
+→ Router
+→ Retrieval Planner
+→ Trusted Retrieval
+→ Evidence Pack
+→ Claim Builder
+→ Claim-Evidence Gate
+→ Dialogue Planner
+→ Writer
+→ Final Verifier
+→ Structured Answer + Citations + Graph
+```
+
+### Technology
+
+**Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS, React Flow  
+**AI:** Google Gemini, multi-model fallback, structured prompting  
+**Validation:** Zod  
+**Database:** Neon PostgreSQL  
+**Retrieval:** QuranEnc, HadeethEnc, Dorar, Islamic Content MCP, local corpus, approved-domain web fallback  
+**Deployment:** Render  
+**Version control / CI:** GitHub, GitHub Actions
+
+### Developers
+
+Developed by **Team RASHID** for the Islamic AI Hackathon.
+
+Repository: **0-Artha-0/Rashid-Islamic-Dialogue-Platform**
+
+### Why We Built It
+
+RASHID was built to move users from simply receiving an instant answer toward understanding **what the evidence is, where it came from, how it relates to the question, and where uncertainty or scholarly disagreement remains**.
+
+### Run Locally
+
+```bash
+git clone https://github.com/0-Artha-0/Rashid-Islamic-Dialogue-Platform.git
+cd Rashid-Islamic-Dialogue-Platform
+npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-## Branches
+Open:
 
-- `main`: stable version
-- `dev`: integration branch
-- `feature/*`: isolated feature work
+```text
+http://localhost:3000
+```
 
-## Deployment
+Required environment variables for the full experience include:
 
-The current deployment target is Render Web Service using:
+```env
+GEMINI_API_KEY=
+DATABASE_URL=
+```
+
+For a production build:
 
 ```bash
-npm install && npm run build
+npm run typecheck
+npm run build
 npm start
 ```
+
+---
+
+## ملاحظة | Note
+
+راشد **ليس محرك فتاوى شخصية** ولا يستبدل العلماء أو المختصين. الهدف هو دعم الفهم الموثّق والحوار القابل للتتبع، مع الإحالة عند الحاجة.
