@@ -136,7 +136,7 @@ Structured Response + Citations + Dialogue/Evidence Graph
 
 ## المطورون | Developers
 
-تم تطوير المشروع بواسطة **فريق راشد | Team RASHID** ضمن الهاكاثون الإسلامي للذكاء الاصطناعي.
+تم تطوير المشروع بواسطة **فريق ثُلّة الأثر | Thullat Al-Athar Team** ضمن الهاكاثون الإسلامي للذكاء الاصطناعي.
 
 - Core repository: **0-Artha-0/Rashid-Islamic-Dialogue-Platform**
 - Development, AI pipeline, retrieval, verification, UI/UX, and deployment were built collaboratively by the RASHID team.
@@ -352,7 +352,7 @@ User
 
 ### Developers
 
-Developed by **Team RASHID** for the Islamic AI Hackathon.
+Developed by **Thullat Al-Athar Team** for the Islamic AI Hackathon.
 
 Repository: **0-Artha-0/Rashid-Islamic-Dialogue-Platform**
 
