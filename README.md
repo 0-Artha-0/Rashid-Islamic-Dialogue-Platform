@@ -5,6 +5,9 @@
 
 > **الفكرة الأساسية:** الانتقال من "إجابة جاهزة" إلى **فهم موثّق، سياقي، وقابل للحوار**.
 
+### 🔗 العرض المباشر | Live Demo
+https://rashid-islamic-dialogue-platform.onrender.com/
+
 ---
 
 ## المشكلة | Problem
@@ -140,8 +143,6 @@ Structured Response + Citations + Dialogue/Evidence Graph
 
 - Core repository: **0-Artha-0/Rashid-Islamic-Dialogue-Platform**
 - Development, AI pipeline, retrieval, verification, UI/UX, and deployment were built collaboratively by the RASHID team.
-
-> يمكن إضافة أسماء أعضاء الفريق هنا عند النشر النهائي إذا رغبتُم بعرض الأسماء الكاملة بدل حسابات GitHub.
 
 ---
 
@@ -304,7 +305,10 @@ public/
 
 ### What is RASHID?
 
-**RASHID** is an Arabic-first, evidence-linked Islamic dialogue platform powered by AI. It is designed not only to answer questions, but to make the reasoning path **traceable, source-grounded, and verifiable**.
+**RASHID** is an Arabic-first, evidence-linked Islamic dialogue platform powered by AI.
+
+### Live Demo
+https://rashid-islamic-dialogue-platform.onrender.com/ It is designed not only to answer questions, but to make the reasoning path **traceable, source-grounded, and verifiable**.
 
 ### The Problem
 
